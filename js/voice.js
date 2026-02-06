@@ -22,29 +22,26 @@ class VoiceManager {
       this.peer = new Peer(myId, peerConfig);
 
       this.peer.on("open", (id) => {
-        console.log("PeerJS Connected, ID:", id);
+        console.log("PeerJS Connected:", id);
         this.updateStatus("Waiting for connection...");
 
         navigator.mediaDevices
           .getUserMedia({ audio: true, video: false })
           .then((stream) => {
             this.myStream = stream;
+            // IMPORTANT: Start unmuted for testing, but let UI control it
             this.setMicStatus(false);
             resolve();
           })
           .catch((err) => {
-            console.error("Microphone error:", err);
-            this.updateStatus("Microphone Error!");
+            console.error("Mic Error:", err);
+            this.updateStatus("Mic Error!");
             reject(err);
           });
       });
 
-      this.peer.on("error", (err) => {
-        console.error("PeerJS Error:", err);
-        this.updateStatus("Error Occurred");
-      });
       this.peer.on("call", (incomingCall) => {
-        console.log("Incoming voice call...");
+        console.log("Incoming call...");
         this.updateStatus("Connecting...");
         incomingCall.answer(this.myStream);
         this.handleCallStream(incomingCall);
@@ -54,10 +51,8 @@ class VoiceManager {
 
   connectToPeer(remotePeerId) {
     if (!this.peer || !this.myStream || this.call) return;
-
     console.log("Calling:", remotePeerId);
     this.updateStatus("Calling...");
-
     const outgoingCall = this.peer.call(remotePeerId, this.myStream);
     this.handleCallStream(outgoingCall);
   }
@@ -66,68 +61,74 @@ class VoiceManager {
     this.call = call;
 
     call.on("stream", (remoteStream) => {
-      console.log("Remote stream received!");
-      this.updateStatus("VOICE CONNECTED ✅");
+      console.log("Stream received!");
+      this.updateStatus("CONNECTED ✅");
       this.playAudio(remoteStream);
     });
 
     call.on("close", () => {
-      this.updateStatus("Connection Lost");
+      this.updateStatus("Ended");
+      this.removeAudioPlayer();
       this.call = null;
     });
 
     call.on("error", (err) => {
-      console.error("Call error:", err);
-      this.updateStatus("Connection Error");
+      this.updateStatus("Error");
+      console.error(err);
     });
   }
 
   playAudio(stream) {
-    let audio = document.getElementById("remote-audio");
-    if (!audio) {
-      audio = document.createElement("audio");
-      audio.id = "remote-audio";
-      document.body.appendChild(audio);
-    }
+    this.removeAudioPlayer(); // Remove old player if exists
 
+    const audio = document.createElement("audio");
+    audio.id = "remote-audio";
     audio.srcObject = stream;
+
+    // --- DEBUG CONTROLS ---
+    audio.controls = true; // Show player controls
     audio.autoplay = true;
     audio.playsInline = true;
-    audio.volume = 1.0;
 
-    const startPlay = async () => {
-      try {
-        await audio.play();
-        console.log("Audio playing started successfully.");
-      } catch (err) {
-        console.error("Autoplay prevented:", err);
-        this.updateStatus("CLICK SCREEN TO HEAR AUDIO! 👆");
+    // Style to make it visible on bottom right
+    audio.style.position = "fixed";
+    audio.style.bottom = "20px";
+    audio.style.right = "20px";
+    audio.style.zIndex = "9999";
+    audio.style.width = "300px";
+    audio.style.height = "50px";
+    audio.style.boxShadow = "0 0 20px rgba(0,0,0,0.5)";
+    audio.style.borderRadius = "10px";
 
-        document.body.addEventListener(
-          "click",
-          () => {
-            audio.play();
-            this.updateStatus("VOICE CONNECTED ✅");
-          },
-          { once: true },
-        );
-      }
-    };
+    document.body.appendChild(audio);
 
-    startPlay();
+    // Try to play
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log("Autoplay blocked. User must click play on the player.");
+        this.updateStatus("CLICK PLAY BUTTON ->");
+      });
+    }
+  }
+
+  removeAudioPlayer() {
+    const existing = document.getElementById("remote-audio");
+    if (existing) existing.remove();
   }
 
   toggleMic() {
     if (!this.myStream) return false;
-
     this.isMicOn = !this.isMicOn;
     this.setMicStatus(this.isMicOn);
     return this.isMicOn;
   }
 
   setMicStatus(isOpen) {
-    if (this.myStream && this.myStream.getAudioTracks().length > 0) {
-      this.myStream.getAudioTracks()[0].enabled = isOpen;
+    if (this.myStream) {
+      this.myStream
+        .getAudioTracks()
+        .forEach((track) => (track.enabled = isOpen));
     }
   }
 
