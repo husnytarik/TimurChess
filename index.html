@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tamerlane Chess Online</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  </head>
+  <body>
+    <div id="lobby-screen">
+      <h1 class="game-title">Tamerlane Chess Online</h1>
+
+      <button class="btn btn-primary" onclick="createRoom()">
+        Create Room (White)
+      </button>
+
+      <div class="join-container">
+        <input
+          type="text"
+          id="room-code-input"
+          class="input-code"
+          placeholder="Room Code"
+        />
+        <button class="btn btn-success" onclick="joinRoom()">
+          Join Room (Black)
+        </button>
+      </div>
+
+      <div id="lobby-status" class="status-text"></div>
+    </div>
+
+    <div id="room-info" class="hidden">
+      Room: <span id="display-room-id" class="highlight-text">...</span> | Role:
+      <span id="my-role" class="highlight-text">...</span>
+    </div>
+
+    <div id="ui-panel" class="hidden">
+      <div id="timer-white" class="timer">10:00</div>
+
+      <button id="mic-btn" onclick="toggleMic()" title="Toggle Microphone">
+        🎙️
+      </button>
+
+      <div id="status">Waiting...</div>
+      <div id="timer-black" class="timer">10:00</div>
+    </div>
+
+    <div id="game-container" class="hidden">
+      <div id="ready-overlay">
+        <h2 style="color: white">Waiting for Players</h2>
+        <div class="ready-status">
+          <div class="player-row">
+            <span>White:</span>
+            <span id="status-white" class="player-tag tag-waiting"
+              >Waiting...</span
+            >
+          </div>
+          <div class="player-row">
+            <span>Black:</span>
+            <span id="status-black" class="player-tag tag-waiting"
+              >Waiting...</span
+            >
+          </div>
+        </div>
+
+        <button id="btn-set-ready" class="btn btn-ready" onclick="setMyReady()">
+          I'M READY!
+        </button>
+        <div id="waiting-msg">Waiting for opponent...</div>
+      </div>
+
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script type="module" src="js/firebase-bridge.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/core/piece.js"></script>
+    <script src="js/core/logic.js"></script>
+    <script src="js/view/renderer.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
