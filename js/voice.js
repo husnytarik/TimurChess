@@ -4,44 +4,83 @@ class VoiceManager {
     this.myStream = null;
     this.call = null;
     this.isMicOn = false;
+    this.connectionStatus = "disconnected";
   }
 
-  async init(myId) {
-    this.peer = new Peer(myId);
+  init(myId) {
+    return new Promise((resolve, reject) => {
+      const peerConfig = {
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:global.stun.twilio.com:3478" },
+          ],
+        },
+        debug: 2,
+      };
 
-    try {
-      this.myStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
+      this.peer = new Peer(myId, peerConfig);
+
+      this.peer.on("open", (id) => {
+        console.log("PeerJS Connected, ID:", id);
+        this.updateStatus("Waiting for connection...");
+
+        navigator.mediaDevices
+          .getUserMedia({ audio: true, video: false })
+          .then((stream) => {
+            this.myStream = stream;
+            this.setMicStatus(false);
+            resolve();
+          })
+          .catch((err) => {
+            console.error("Microphone error:", err);
+            this.updateStatus("Microphone Error!");
+            reject(err);
+          });
       });
 
-      this.setMicStatus(false);
+      this.peer.on("error", (err) => {
+        console.error("PeerJS Error:", err);
+        this.updateStatus("Error Occurred");
+      });
 
       this.peer.on("call", (incomingCall) => {
         console.log("Incoming voice call...");
+        this.updateStatus("Connecting...");
         incomingCall.answer(this.myStream);
-        incomingCall.on("stream", (remoteStream) => {
-          this.playAudio(remoteStream);
-        });
-        this.call = incomingCall;
+        this.handleCallStream(incomingCall);
       });
-    } catch (err) {
-      console.error("Microphone error:", err);
-      alert("Microphone access denied! Voice chat may not work.");
-    }
+    });
   }
 
   connectToPeer(remotePeerId) {
     if (!this.peer || !this.myStream || this.call) return;
 
     console.log("Calling:", remotePeerId);
-    const outgoingCall = this.peer.call(remotePeerId, this.myStream);
+    this.updateStatus("Calling...");
 
-    outgoingCall.on("stream", (remoteStream) => {
+    const outgoingCall = this.peer.call(remotePeerId, this.myStream);
+    this.handleCallStream(outgoingCall);
+  }
+
+  handleCallStream(call) {
+    this.call = call;
+
+    call.on("stream", (remoteStream) => {
+      console.log("Remote stream received!");
+      this.updateStatus("VOICE CONNECTED ✅");
       this.playAudio(remoteStream);
     });
 
-    this.call = outgoingCall;
+    call.on("close", () => {
+      this.updateStatus("Connection Lost");
+      this.call = null;
+    });
+
+    call.on("error", (err) => {
+      console.error("Call error:", err);
+      this.updateStatus("Connection Error");
+    });
   }
 
   playAudio(stream) {
@@ -52,9 +91,13 @@ class VoiceManager {
       document.body.appendChild(audio);
     }
     audio.srcObject = stream;
-    audio
-      .play()
-      .catch((e) => console.log("Auto-play prevented, interaction required."));
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log("Auto-play prevented. User interaction required.");
+      });
+    }
   }
 
   toggleMic() {
@@ -66,8 +109,17 @@ class VoiceManager {
   }
 
   setMicStatus(isOpen) {
-    if (this.myStream) {
+    if (this.myStream && this.myStream.getAudioTracks().length > 0) {
       this.myStream.getAudioTracks()[0].enabled = isOpen;
+    }
+  }
+
+  updateStatus(msg) {
+    this.connectionStatus = msg;
+    const statusDiv = document.getElementById("status");
+    if (statusDiv) {
+      const currentText = statusDiv.innerText.split(" | ")[0];
+      statusDiv.innerText = `${currentText} | 🔊 ${msg}`;
     }
   }
 }
