@@ -106,12 +106,9 @@ function handleServerUpdate(data) {
 
   updateReadyStatusUI(data);
 
-  if (state.myColor === "white" && data.peerBlack) {
+  if (state.myColor === "white" && data.peerBlack && !window.Voice.call) {
     window.Voice.connectToPeer(data.peerBlack);
-  } else if (state.myColor === "black" && data.peerWhite) {
-    window.Voice.connectToPeer(data.peerWhite);
   }
-
   if (data.status === "playing" && !state.gameStarted) {
     state.gameStarted = true;
     document.getElementById("ready-overlay").classList.add("hidden");
