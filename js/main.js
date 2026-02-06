@@ -1,4 +1,5 @@
 const canvas = document.getElementById("gameCanvas");
+// Canvas çözünürlüğü (İç boyut)
 canvas.width =
   CONFIG.BOARD.COLS * CONFIG.BOARD.TILE_SIZE + CONFIG.BOARD.OFFSET_X * 2;
 canvas.height =
@@ -106,9 +107,11 @@ function handleServerUpdate(data) {
 
   updateReadyStatusUI(data);
 
+  // Sesli Sohbet (Sadece Beyaz Arar)
   if (state.myColor === "white" && data.peerBlack && !window.Voice.call) {
     window.Voice.connectToPeer(data.peerBlack);
   }
+
   if (data.status === "playing" && !state.gameStarted) {
     state.gameStarted = true;
     document.getElementById("ready-overlay").classList.add("hidden");
@@ -130,7 +133,6 @@ function handleServerUpdate(data) {
     JSON.stringify(data.lastMove) !== JSON.stringify(lastProcessedMove)
   ) {
     const move = data.lastMove;
-
     const piece = state.pieces.find(
       (p) => p.x === move.from.x && p.y === move.from.y,
     );
@@ -146,7 +148,6 @@ function handleServerUpdate(data) {
       const newType = GameLogic.checkPromotion(piece);
       if (newType) piece.type = newType;
     }
-
     lastProcessedMove = data.lastMove;
     checkGameState();
   }
@@ -193,9 +194,7 @@ function startTimer() {
 
   state.interval = setInterval(() => {
     if (!state.gameStarted || state.gameOver) return;
-
     state.timers[state.turn]--;
-
     formatTime("timer-white", state.timers.white);
     formatTime("timer-black", state.timers.black);
 
@@ -262,13 +261,23 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// --- DÜZELTİLEN KISIM: RESPONSIVE KOORDİNAT HESABI ---
 function getLogicalPos(evt) {
   const rect = canvas.getBoundingClientRect();
+
+  // Canvas'ın ekrandaki boyutu (rect) ile iç çözünürlüğü (canvas.width) arasındaki oran
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  // Tıklanan noktanın gerçek konumu (Zoom/Resize hesaba katılarak)
+  const realX = (evt.clientX - rect.left) * scaleX;
+  const realY = (evt.clientY - rect.top) * scaleY;
+
   let col = Math.floor(
-    (evt.clientX - rect.left - CONFIG.BOARD.OFFSET_X) / CONFIG.BOARD.TILE_SIZE,
+    (realX - CONFIG.BOARD.OFFSET_X) / CONFIG.BOARD.TILE_SIZE,
   );
   let row = Math.floor(
-    (evt.clientY - rect.top - CONFIG.BOARD.OFFSET_Y) / CONFIG.BOARD.TILE_SIZE,
+    (realY - CONFIG.BOARD.OFFSET_Y) / CONFIG.BOARD.TILE_SIZE,
   );
 
   if (state.myColor === "black") {
@@ -299,9 +308,22 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("click", (e) => {
   if (state.gameOver || !state.gameStarted) return;
   if (state.turn !== state.myColor) return;
-  if (!state.hoverSquare) return;
 
-  const { x: col, y: row } = state.hoverSquare;
+  // --- DÜZELTME: MOBİL İÇİN DİREKT HESAPLAMA ---
+  // Telefondan dokununca 'hoverSquare' dolu olmayabilir.
+  // Bu yüzden tıklama anında koordinatı tekrar hesaplıyoruz.
+  const pos = getLogicalPos(e);
+  const col = pos.col;
+  const row = pos.row;
+
+  // Tıklanan yer geçerli mi?
+  const isValidMain =
+    col >= 0 && col < CONFIG.BOARD.COLS && row >= 0 && row < CONFIG.BOARD.ROWS;
+  const isLeftCitadel = col === -1 && row === 2;
+  const isRightCitadel = col === 11 && row === 7;
+
+  if (!isValidMain && !isLeftCitadel && !isRightCitadel) return;
+  // ----------------------------------------------
 
   const move = state.legalMoves.find((m) => m.x === col && m.y === row);
   if (state.selectedPiece && move) {
@@ -391,11 +413,12 @@ function endGame(winner, reason) {
     statusDiv.style.backgroundColor = "#f39c12";
   }
 }
+
+// Mobilde dokunmayı Mouse Click gibi davranmaya zorla
 canvas.addEventListener(
   "touchstart",
   (e) => {
-    e.preventDefault(); // Sayfanın kaymasını engelle
-    // Mouse click eventini taklit et
+    e.preventDefault();
     const touch = e.touches[0];
     const mouseEvent = new MouseEvent("click", {
       clientX: touch.clientX,
