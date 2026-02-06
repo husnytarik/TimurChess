@@ -209,3 +209,55 @@ canvas {
 .hidden {
   display: none !important;
 }
+/* --- MOBİL / RESPONSIVE AYARLAR --- */
+
+/* Oyun Alanı: Ekrana sığsın ve ortalansın */
+#game-container {
+  max-width: 95vw; /* Ekranın %95'ini kaplasın */
+  max-height: 80vh; /* Yüksekliği de taşmasın */
+  width: auto;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Canvas: Elastik olsun */
+canvas {
+  width: 100%; /* Kapsayıcısına uysun */
+  height: 100%; /* Oranı bozmadan sığsın */
+  object-fit: contain;
+  touch-action: none; /* Telefondan oynarken sayfa kaymasın */
+}
+
+/* UI Panel (Timer ve Butonlar): Mobilde sıkışmasın */
+@media (max-width: 768px) {
+  #ui-panel {
+    flex-wrap: wrap; /* Sığmazsa alt satıra geçsin */
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .timer {
+    font-size: 16px; /* Yazıları biraz küçültelim */
+    padding: 5px 10px;
+    min-width: 50px;
+  }
+
+  #status {
+    font-size: 14px;
+    padding: 8px;
+    min-width: 150px;
+    order: 3; /* Status en altta görünsün */
+    width: 90%;
+  }
+
+  /* Ses Oynatıcı Mobilde Çok Yer Kaplamasın */
+  #remote-audio {
+    width: 80% !important;
+    left: 10% !important;
+    bottom: 10px !important;
+  }
+}
