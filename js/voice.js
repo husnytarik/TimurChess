@@ -29,7 +29,7 @@ class VoiceManager {
           .getUserMedia({ audio: true, video: false })
           .then((stream) => {
             this.myStream = stream;
-            this.setMicStatus(false);
+            this.setMicStatus(false); // Başlangıçta sessiz
             resolve();
           })
           .catch((err) => {
@@ -47,6 +47,7 @@ class VoiceManager {
       this.peer.on("call", (incomingCall) => {
         console.log("Incoming voice call...");
         this.updateStatus("Connecting...");
+        // Aramayı cevapla
         incomingCall.answer(this.myStream);
         this.handleCallStream(incomingCall);
       });
@@ -83,21 +84,41 @@ class VoiceManager {
     });
   }
 
+  // --- GÜNCELLENEN KISIM: SES OYNATMA ---
   playAudio(stream) {
     let audio = document.getElementById("remote-audio");
     if (!audio) {
       audio = document.createElement("audio");
       audio.id = "remote-audio";
+      // audio.controls = true; // Debug için gerekirse açabilirsin
+      audio.style.display = "none";
       document.body.appendChild(audio);
     }
+
+    // Önceki kaynağı temizle
+    audio.srcObject = null;
     audio.srcObject = stream;
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Auto-play prevented. User interaction required.");
-      });
-    }
+    // Önemli Özellikler
+    audio.autoplay = true;
+    audio.playsInline = true; // iOS için kritik
+    audio.volume = 1.0;
+
+    // Veri yüklendiğinde oynatmayı zorla
+    audio.onloadedmetadata = () => {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("Audio is playing!");
+          })
+          .catch((error) => {
+            console.error("Audio autoplay failed:", error);
+            // Kullanıcı etkileşimi gerekebilir uyarısı
+            this.updateStatus("Click page to hear audio!");
+          });
+      }
+    };
   }
 
   toggleMic() {
