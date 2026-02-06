@@ -3,16 +3,21 @@ class VoiceManager {
     this.peer = null;
     this.myStream = null;
     this.call = null;
-    this.isMicOn = false;
+    this.isMicOn = true; // TEST İÇİN: Başlangıçta AÇIK olsun
     this.connectionStatus = "disconnected";
   }
 
   init(myId) {
     return new Promise((resolve, reject) => {
+      // 1. DAHA GÜÇLÜ SUNUCU LİSTESİ (Bağlantı şansını artırır)
       const peerConfig = {
         config: {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
             { urls: "stun:global.stun.twilio.com:3478" },
           ],
         },
@@ -22,27 +27,26 @@ class VoiceManager {
       this.peer = new Peer(myId, peerConfig);
 
       this.peer.on("open", (id) => {
-        console.log("PeerJS Connected:", id);
-        this.updateStatus("Waiting for connection...");
+        console.log("My Peer ID:", id);
+        this.updateStatus("Hazır. Rakip Bekleniyor...");
 
         navigator.mediaDevices
           .getUserMedia({ audio: true, video: false })
           .then((stream) => {
             this.myStream = stream;
-            // IMPORTANT: Start unmuted for testing, but let UI control it
-            this.setMicStatus(false);
+            // TEST: Mikrofonu direkt açıyoruz
+            this.setMicStatus(true);
             resolve();
           })
           .catch((err) => {
-            console.error("Mic Error:", err);
-            this.updateStatus("Mic Error!");
+            console.error("Mic Fail:", err);
+            this.updateStatus("Mikrofon Hatası!");
             reject(err);
           });
       });
 
       this.peer.on("call", (incomingCall) => {
-        console.log("Incoming call...");
-        this.updateStatus("Connecting...");
+        this.updateStatus("Arama Geliyor...");
         incomingCall.answer(this.myStream);
         this.handleCallStream(incomingCall);
       });
@@ -51,8 +55,7 @@ class VoiceManager {
 
   connectToPeer(remotePeerId) {
     if (!this.peer || !this.myStream || this.call) return;
-    console.log("Calling:", remotePeerId);
-    this.updateStatus("Calling...");
+    this.updateStatus("Aranıyor...");
     const outgoingCall = this.peer.call(remotePeerId, this.myStream);
     this.handleCallStream(outgoingCall);
   }
@@ -60,54 +63,57 @@ class VoiceManager {
   handleCallStream(call) {
     this.call = call;
 
+    // 2. BAĞLANTI DURUMUNU DETAYLI İZLE (ICE STATE)
+    // Bu kısım sorunun nerede olduğunu bize söyleyecek
+    if (call.peerConnection) {
+      call.peerConnection.oniceconnectionstatechange = () => {
+        const state = call.peerConnection.iceConnectionState;
+        console.log("Bağlantı Durumu:", state);
+        this.updateStatus("Durum: " + state.toUpperCase());
+
+        if (state === "disconnected" || state === "failed") {
+          this.updateStatus("Bağlantı Koptu/Engellendi ❌");
+          this.removeAudioPlayer();
+        }
+      };
+    }
+
     call.on("stream", (remoteStream) => {
-      console.log("Stream received!");
-      this.updateStatus("CONNECTED ✅");
+      console.log("Stream Geldi!");
       this.playAudio(remoteStream);
     });
 
     call.on("close", () => {
-      this.updateStatus("Ended");
       this.removeAudioPlayer();
       this.call = null;
-    });
-
-    call.on("error", (err) => {
-      this.updateStatus("Error");
-      console.error(err);
     });
   }
 
   playAudio(stream) {
-    this.removeAudioPlayer(); // Remove old player if exists
+    this.removeAudioPlayer();
 
     const audio = document.createElement("audio");
     audio.id = "remote-audio";
     audio.srcObject = stream;
 
-    // --- DEBUG CONTROLS ---
-    audio.controls = true; // Show player controls
+    // Oynatıcı Ayarları
+    audio.controls = true;
     audio.autoplay = true;
     audio.playsInline = true;
 
-    // Style to make it visible on bottom right
+    // Sağ altta görünsün
     audio.style.position = "fixed";
     audio.style.bottom = "20px";
     audio.style.right = "20px";
     audio.style.zIndex = "9999";
     audio.style.width = "300px";
-    audio.style.height = "50px";
-    audio.style.boxShadow = "0 0 20px rgba(0,0,0,0.5)";
-    audio.style.borderRadius = "10px";
 
     document.body.appendChild(audio);
 
-    // Try to play
     const playPromise = audio.play();
     if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Autoplay blocked. User must click play on the player.");
-        this.updateStatus("CLICK PLAY BUTTON ->");
+      playPromise.catch(() => {
+        this.updateStatus("Sesi duymak için OYNAT'a bas ->");
       });
     }
   }
@@ -147,7 +153,6 @@ window.Voice = new VoiceManager();
 window.toggleMic = function () {
   const isOpen = window.Voice.toggleMic();
   const btn = document.getElementById("mic-btn");
-
   if (isOpen) {
     btn.classList.add("active");
     btn.innerHTML = "🎙️";
