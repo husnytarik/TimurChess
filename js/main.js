@@ -391,3 +391,17 @@ function endGame(winner, reason) {
     statusDiv.style.backgroundColor = "#f39c12";
   }
 }
+canvas.addEventListener(
+  "touchstart",
+  (e) => {
+    e.preventDefault(); // Sayfanın kaymasını engelle
+    // Mouse click eventini taklit et
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("click", {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    });
+    canvas.dispatchEvent(mouseEvent);
+  },
+  { passive: false },
+);
