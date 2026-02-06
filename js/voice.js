@@ -29,7 +29,7 @@ class VoiceManager {
           .getUserMedia({ audio: true, video: false })
           .then((stream) => {
             this.myStream = stream;
-            this.setMicStatus(false); // Başlangıçta sessiz
+            this.setMicStatus(false);
             resolve();
           })
           .catch((err) => {
@@ -43,11 +43,9 @@ class VoiceManager {
         console.error("PeerJS Error:", err);
         this.updateStatus("Error Occurred");
       });
-
       this.peer.on("call", (incomingCall) => {
         console.log("Incoming voice call...");
         this.updateStatus("Connecting...");
-        // Aramayı cevapla
         incomingCall.answer(this.myStream);
         this.handleCallStream(incomingCall);
       });
@@ -84,41 +82,39 @@ class VoiceManager {
     });
   }
 
-  // --- GÜNCELLENEN KISIM: SES OYNATMA ---
   playAudio(stream) {
     let audio = document.getElementById("remote-audio");
     if (!audio) {
       audio = document.createElement("audio");
       audio.id = "remote-audio";
-      // audio.controls = true; // Debug için gerekirse açabilirsin
-      audio.style.display = "none";
       document.body.appendChild(audio);
     }
 
-    // Önceki kaynağı temizle
-    audio.srcObject = null;
     audio.srcObject = stream;
-
-    // Önemli Özellikler
     audio.autoplay = true;
-    audio.playsInline = true; // iOS için kritik
+    audio.playsInline = true;
     audio.volume = 1.0;
 
-    // Veri yüklendiğinde oynatmayı zorla
-    audio.onloadedmetadata = () => {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log("Audio is playing!");
-          })
-          .catch((error) => {
-            console.error("Audio autoplay failed:", error);
-            // Kullanıcı etkileşimi gerekebilir uyarısı
-            this.updateStatus("Click page to hear audio!");
-          });
+    const startPlay = async () => {
+      try {
+        await audio.play();
+        console.log("Audio playing started successfully.");
+      } catch (err) {
+        console.error("Autoplay prevented:", err);
+        this.updateStatus("CLICK SCREEN TO HEAR AUDIO! 👆");
+
+        document.body.addEventListener(
+          "click",
+          () => {
+            audio.play();
+            this.updateStatus("VOICE CONNECTED ✅");
+          },
+          { once: true },
+        );
       }
     };
+
+    startPlay();
   }
 
   toggleMic() {
