@@ -10,7 +10,6 @@ body {
   overflow: hidden;
 }
 
-/* --- LOBİ EKRANI --- */
 #lobby-screen {
   position: fixed;
   top: 0;
@@ -24,19 +23,22 @@ body {
   align-items: center;
   z-index: 100;
 }
+
 .game-title {
   color: white;
   margin-bottom: 40px;
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  text-align: center; /* Mobilde ortalansın */
+  text-align: center;
 }
+
 .join-container {
   margin: 20px 0;
   display: flex;
   gap: 10px;
-  flex-wrap: wrap; /* Mobilde sığmazsa aşağı geçsin */
+  flex-wrap: wrap;
   justify-content: center;
 }
+
 .status-text {
   color: #bdc3c7;
   margin-top: 15px;
@@ -44,7 +46,6 @@ body {
   min-height: 24px;
 }
 
-/* --- BUTONLAR VE GİRİŞLER --- */
 .btn {
   padding: 12px 25px;
   font-size: 18px;
@@ -56,25 +57,31 @@ body {
     transform 0.2s,
     box-shadow 0.2s;
 }
+
 .btn:active {
   transform: scale(0.95);
 }
+
 .btn-primary {
   background: #e67e22;
 }
+
 .btn-success {
   background: #27ae60;
 }
+
 .btn-ready {
   background: #2980b9;
   margin-top: 20px;
   font-weight: bold;
 }
+
 .btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
   opacity: 0.7;
 }
+
 .input-code {
   padding: 12px;
   font-size: 18px;
@@ -86,34 +93,34 @@ body {
   text-transform: uppercase;
 }
 
-/* --- ÜST BİLGİ ÇUBUĞU (Oda Kodu) --- */
 #room-info {
-  position: fixed; /* Sayfa kaydırmasından etkilenmez */
+  position: fixed;
   top: 10px;
   left: 50%;
-  transform: translateX(-50%); /* Tam ortala */
-
-  background-color: rgba(0, 0, 0, 0.6); /* Okunabilirlik için siyah zemin */
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.6);
   padding: 8px 20px;
   border-radius: 20px;
-
   color: #ecf0f1;
   font-family: "Segoe UI", monospace;
   font-size: 18px;
   font-weight: bold;
-  z-index: 200; /* En üstte durması için (Lobi:100, Overlay:50) */
+  z-index: 200;
   white-space: nowrap;
-
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  pointer-events: none; /* Oyuna tıklamayı engellemesin */
+  pointer-events: none;
 }
+
+#room-info button {
+  pointer-events: auto;
+}
+
 .highlight-text {
-  color: #f1c40f; /* Sarı renk ile dikkat çeksin */
+  color: #f1c40f;
   font-weight: 800;
   letter-spacing: 1px;
 }
 
-/* --- UI PANELİ (Timer, Mic, Status) --- */
 #ui-panel {
   display: flex;
   gap: 20px;
@@ -121,6 +128,7 @@ body {
   align-items: center;
   z-index: 10;
 }
+
 #status {
   background: #34495e;
   color: #fff;
@@ -132,6 +140,7 @@ body {
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
+
 .timer {
   background: #2c3e50;
   color: #ecf0f1;
@@ -143,6 +152,7 @@ body {
   min-width: 70px;
   text-align: center;
 }
+
 #mic-btn {
   background-color: #c0392b;
   color: white;
@@ -158,18 +168,19 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
+
 #mic-btn.active {
   background-color: #27ae60;
   box-shadow: 0 0 15px #27ae60;
   transform: scale(1.1);
 }
+
 #mic-btn:disabled {
   background-color: #95a5a6;
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-/* --- OYUN ALANI --- */
 #game-container {
   position: relative;
   background-image: url("../assets/bg.jpg");
@@ -178,10 +189,8 @@ body {
   border: 8px solid #34495e;
   border-radius: 8px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-
-  /* Responsive / Mobil Ayarları */
-  max-width: 95vw; /* Ekranın %95'ini geçmesin */
-  max-height: 75vh; /* Dikeyde de taşmasın */
+  max-width: 95vw;
+  max-height: 75vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -190,13 +199,12 @@ body {
 
 canvas {
   display: block;
-  width: 100%; /* Konteynera sığsın */
+  width: 100%;
   height: 100%;
-  object-fit: contain; /* Oranı bozmadan sığdır */
-  touch-action: none; /* Mobilde kaydırmayı engelle */
+  object-fit: contain;
+  touch-action: none;
 }
 
-/* --- HAZIRLIK PERDESİ (Overlay) --- */
 #ready-overlay {
   position: absolute;
   top: 0;
@@ -212,11 +220,13 @@ canvas {
   backdrop-filter: blur(5px);
   border-radius: 6px;
 }
+
 .player-row {
   margin: 10px 0;
   font-size: 18px;
   color: #ecf0f1;
 }
+
 .player-tag {
   display: inline-block;
   padding: 4px 12px;
@@ -224,28 +234,31 @@ canvas {
   margin-left: 10px;
   font-size: 16px;
 }
+
 .tag-waiting {
   background: #7f8c8d;
   color: #ecf0f1;
 }
+
 .tag-ready {
   background: #27ae60;
   color: white;
   box-shadow: 0 0 10px #27ae60;
 }
+
 #waiting-msg {
   color: #bdc3c7;
   margin-top: 15px;
   font-style: italic;
 }
+
 .hidden {
   display: none !important;
 }
 
-/* --- MOBİL İÇİN EKSTRA DÜZENLEMELER --- */
 @media (max-width: 768px) {
   #ui-panel {
-    flex-wrap: wrap; /* Sığmazsa alt satıra geçsin */
+    flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
     width: 100%;
@@ -261,7 +274,307 @@ canvas {
     font-size: 14px;
     padding: 8px;
     min-width: 150px;
-    order: 3; /* Status en altta görünsün */
+    order: 3;
     width: 90%;
   }
+}
+
+#auth-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #2c3e50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 300;
+}
+
+.auth-box {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  width: 90%;
+  max-width: 400px;
+}
+
+.auth-input {
+  display: block;
+  margin: 10px auto;
+  width: 100%;
+  max-width: 300px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+}
+
+.auth-input::placeholder {
+  color: #bdc3c7;
+}
+
+.auth-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ecf0f1;
+}
+
+.auth-btn-full {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 20px;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  color: #bdc3c7;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: #e67e22;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+#auth-msg {
+  margin-top: 15px;
+  font-weight: bold;
+  min-height: 20px;
+}
+
+.msg-error {
+  color: #e74c3c;
+}
+
+.msg-success {
+  color: #2ecc71;
+}
+
+.btn-logout {
+  position: absolute;
+  top: 20px;
+  left: 20px; /* SAĞ değil SOL tarafa aldık */
+  background: #c0392b;
+  font-size: 12px;
+  padding: 8px 15px;
+  z-index: 150;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#user-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 15px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  z-index: 150;
+}
+
+#user-badge:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: #f1c40f;
+}
+
+.badge-icon {
+  background: #ecf0f1;
+  color: #2c3e50;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.modal {
+  position: fixed;
+  z-index: 500;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #34495e;
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: white;
+  position: relative;
+  border: 2px solid #7f8c8d;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 30px;
+  cursor: pointer;
+  color: #bdc3c7;
+}
+
+.close-modal:hover {
+  color: white;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+}
+.stat-val {
+  font-size: 24px;
+  font-weight: bold;
+}
+.stat-label {
+  font-size: 12px;
+  color: #bdc3c7;
+  text-transform: uppercase;
+}
+.win-color {
+  color: #2ecc71;
+}
+.lose-color {
+  color: #e74c3c;
+}
+.score-color {
+  color: #f1c40f;
+}
+
+#match-history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+}
+
+.history-win {
+  border-left: 4px solid #2ecc71;
+  background: rgba(46, 204, 113, 0.1);
+}
+.history-loss {
+  border-left: 4px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+/* YENİ EKLENEN STİLLER */
+
+.lobby-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #bdc3c7;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 10px;
+}
+
+.tab-btn.active {
+  color: white;
+  font-weight: bold;
+  border-bottom: 3px solid #e67e22;
+}
+
+.scroll-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 5px;
+  text-align: left;
+}
+
+.list-item {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ecf0f1;
+}
+
+.public-room-item {
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 5px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.public-room-item:hover {
+  background: rgba(255, 255, 255, 0.1);
 }

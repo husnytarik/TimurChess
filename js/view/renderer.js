@@ -15,7 +15,7 @@ class Renderer {
       elephant: "♝\uFE0E",
       camel: "C",
       giraffe: "Z",
-      scout: "➹\uFE0E", // Fixed: Uses a monochrome arrow to respect fillStyle
+      scout: "➹\uFE0E",
       catapult: "☄\uFE0E",
       pawn: "♟\uFE0E",
     };
