@@ -136,6 +136,38 @@
         </button>
       </div>
 
+      <div
+        class="lobby-box"
+        style="margin-top: 20px; border: 1px solid #e67e22"
+      >
+        <h3 style="color: #e67e22">PLAY VS COMPUTER</h3>
+        <div
+          style="
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+          "
+        >
+          <select
+            id="bot-difficulty"
+            class="auth-input"
+            style="width: auto; margin: 0; padding: 5px"
+          >
+            <option value="easy">Easy (Random)</option>
+            <option value="medium">Medium (Aggressive)</option>
+            <option value="hard">Hard (Tactical)</option>
+          </select>
+        </div>
+        <button
+          class="btn"
+          style="background: #d35400"
+          onclick="startBotGame()"
+        >
+          START GAME
+        </button>
+      </div>
+
       <div class="lobby-box" style="margin-top: 20px">
         <h3>Join Game</h3>
         <div class="join-container">
@@ -369,6 +401,11 @@
       <canvas id="gameCanvas"></canvas>
     </div>
 
+    <div id="log-container" class="hidden">
+      <div class="log-header">📜 Move History</div>
+      <div id="log-list"></div>
+    </div>
+
     <div id="chat-container" class="hidden">
       <div id="chat-messages"></div>
       <div class="chat-input-area">
@@ -396,7 +433,7 @@
     <script src="js/managers/lobby.js"></script>
     <script src="js/managers/profile.js"></script>
     <script src="js/managers/chat.js"></script>
-
+    <script src="js/ai/bot.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

@@ -1,3 +1,4 @@
+// --- GLOBAL STATE ---
 const canvas = document.getElementById("gameCanvas");
 canvas.width =
   CONFIG.BOARD.COLS * CONFIG.BOARD.TILE_SIZE + CONFIG.BOARD.OFFSET_X * 2;
@@ -6,7 +7,6 @@ canvas.height =
 window.renderer = new Renderer(canvas);
 const statusDiv = document.getElementById("status");
 
-// Global State
 window.state = {
   pieces: [],
   turn: "white",
@@ -20,6 +20,7 @@ window.state = {
   errorSquare: null,
   isReady: false,
   nickname: "Player",
+  isVsComputer: false, // Varsayılan False
   timers: {
     white: CONFIG.GAME.TIME_LIMIT_SECONDS,
     black: CONFIG.GAME.TIME_LIMIT_SECONDS,
@@ -28,35 +29,63 @@ window.state = {
 };
 
 window.startGameUI = (roomId) => {
+  // UI Temizliği
   document.getElementById("lobby-screen").classList.add("hidden");
   document.getElementById("room-info").classList.remove("hidden");
   document.getElementById("ui-panel").classList.remove("hidden");
   document.getElementById("game-container").classList.remove("hidden");
+  document.getElementById("log-container").classList.remove("hidden");
+  document.getElementById("chat-container").classList.remove("hidden");
+
+  document.getElementById("log-list").innerHTML = "";
   document.getElementById("display-room-id").textContent = roomId;
   document.getElementById("my-role").textContent =
     window.state.myColor === "white" ? "WHITE" : "BLACK";
 
-  document.getElementById("chat-container").classList.remove("hidden");
+  // Chat Başlat
   window.Network.listenForChat(roomId, window.renderChatMessages);
 
+  // Profil
   window.Network.getUserProfile().then((p) => {
     if (p) window.state.nickname = p.nickname;
   });
 
-  const myVoiceId = `${roomId}_${window.state.myColor}`;
-  window.Voice.init(myVoiceId).then(() =>
-    window.Network.savePeerId(roomId, window.state.myColor, myVoiceId),
-  );
+  // Oyunu Kur
   initGame();
+
+  // --- AYRIM: BOT MU ONLINE MI? ---
+  if (window.state.isVsComputer) {
+    console.log("Bot modu aktif. Sunucu dinlenmiyor.");
+    document.getElementById("ready-overlay").classList.add("hidden");
+
+    // ZORLA BAŞLAT
+    window.state.gameStarted = true;
+    window.state.turn = "white";
+    window.updateStatusText();
+
+    // --- EKLENEN SATIR: SAYACI BAŞLAT ---
+    startTimer();
+  } else {
+    console.log("Online mod aktif. Sunucu dinleniyor.");
+    const myVoiceId = `${roomId}_${window.state.myColor}`;
+    window.Voice.init(myVoiceId).then(() =>
+      window.Network.savePeerId(roomId, window.state.myColor, myVoiceId),
+    );
+    window.Network.listenGame(roomId, (d) => handleServerUpdate(d));
+  }
 };
 
 window.leaveRoom = async () => {
   if (!confirm("Leave game?")) return;
-  await window.Network.leaveGame(window.state.roomId, window.state.myColor);
+  if (!window.state.isVsComputer) {
+    await window.Network.leaveGame(window.state.roomId, window.state.myColor);
+  }
   location.reload();
 };
 
 window.toggleReadyState = () => {
+  if (window.state.isVsComputer) return; // Botta ready yok
+
   window.state.isReady = !window.state.isReady;
   const container = document.querySelector(".ready-toggle-container");
   const text = document.getElementById("ready-text");
@@ -75,11 +104,12 @@ window.toggleReadyState = () => {
   );
 };
 
+// --- INIT GAME (ARTIK SAF - LISTEN GAME YOK) ---
 function initGame() {
   window.state.pieces = CONFIG.INITIAL_SETUP.map(
     (d) => new Piece(d.t, d.c, d.x, d.y),
   );
-  window.Network.listenGame(window.state.roomId, (d) => handleServerUpdate(d));
+  // BURADAN window.Network.listenGame KALDIRILDI!
   gameLoop();
 }
 
@@ -87,8 +117,10 @@ let lastProcessedMove = null;
 function handleServerUpdate(data) {
   if (!data) return;
 
+  // UI Güncellemeleri (Ready vs)
   const wS = document.getElementById("status-white");
   const bS = document.getElementById("status-black");
+
   if (data.playerWhite) {
     wS.textContent = data.readyWhite ? "READY" : "WAITING";
     wS.className = data.readyWhite
@@ -119,7 +151,7 @@ function handleServerUpdate(data) {
   }
 
   window.state.turn = data.turn;
-  updateStatusText();
+  window.updateStatusText();
 
   if (
     data.lastMove &&
@@ -144,14 +176,28 @@ function handleServerUpdate(data) {
   }
 }
 
-function updateStatusText() {
-  statusDiv.textContent =
-    window.state.turn === window.state.myColor
-      ? "YOUR TURN"
-      : "OPPONENT'S TURN";
-  statusDiv.style.background =
-    window.state.turn === window.state.myColor ? "#27ae60" : "#c0392b";
-}
+window.updateStatusText = () => {
+  const statusDiv = document.getElementById("status");
+
+  if (window.state.isVsComputer) {
+    // BOT MODU
+    if (window.state.turn === window.state.myColor) {
+      statusDiv.textContent = "YOUR TURN (WHITE)";
+      statusDiv.style.background = "#27ae60"; // Yeşil
+    } else {
+      statusDiv.textContent = "COMPUTER IS THINKING...";
+      statusDiv.style.background = "#e67e22"; // Turuncu
+    }
+  } else {
+    // ONLINE MOD
+    statusDiv.textContent =
+      window.state.turn === window.state.myColor
+        ? "YOUR TURN"
+        : "OPPONENT'S TURN";
+    statusDiv.style.background =
+      window.state.turn === window.state.myColor ? "#27ae60" : "#c0392b";
+  }
+};
 
 function startTimer() {
   if (window.state.interval) clearInterval(window.state.interval);
@@ -196,11 +242,19 @@ window.executeMove = (move) => {
   window.state.selectedPiece = null;
   window.state.legalMoves = [];
 
-  window.Network.sendMove(
-    window.state.roomId,
-    { from, to: move },
-    window.state.turn === "white" ? "black" : "white",
-  );
+  // SEND MOVE (ONLINE OR BOT)
+  if (window.state.isVsComputer) {
+    // Botta sıra manuel değişir
+    window.state.turn = window.state.turn === "white" ? "black" : "white";
+    window.updateStatusText();
+  } else {
+    // Online'da sunucuya gider
+    window.Network.sendMove(
+      window.state.roomId,
+      { from, to: move },
+      window.state.turn === "white" ? "black" : "white",
+    );
+  }
 
   // LOGLAMA
   const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
@@ -213,6 +267,15 @@ window.executeMove = (move) => {
   );
 
   checkGameState();
+
+  // BOT TETİKLEME
+  if (
+    window.state.isVsComputer &&
+    !window.state.gameOver &&
+    window.state.turn === "black"
+  ) {
+    setTimeout(() => window.Bot.playTurn("black"), 500); // 500ms gecikme ile çağır
+  }
 };
 
 function checkGameState() {

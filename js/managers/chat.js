@@ -18,28 +18,36 @@ window.handleChatKey = (e) => {
   }
 };
 
-// Bu fonksiyon artık TEK BİR MESAJ alıyor ve ekliyor
 window.renderChatMessages = (message) => {
   if (!message) return;
-  const div = document.getElementById("chat-messages");
 
-  // Önceki "tümünü silme" satırını (div.innerHTML = "") KALDIRDIK.
+  // --- AYRIŞTIRMA MANTIĞI ---
 
-  const el = document.createElement("div");
-
+  // EĞER SİSTEM MESAJIYSA -> LOG KUTUSUNA
   if (message.sender === "SYSTEM") {
-    el.className = "chat-msg system";
-    el.innerHTML = `<i>${message.text}</i>`;
-    el.style.color = "#f39c12";
-    el.style.fontSize = "11px";
-    el.style.alignSelf = "center";
-    el.style.background = "none";
-  } else {
+    const logList = document.getElementById("log-list");
+    const el = document.createElement("div");
+    el.className = "log-item";
+    // Mesajın başındaki [GAME] kısmını atıp daha temiz gösterelim
+    const cleanText = message.text.replace("[GAME]", "").trim();
+
+    // Saati ekleyelim
+    const date = new Date(message.timestamp);
+    const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+
+    el.innerHTML = `<span style="color:#7f8c8d; font-size:10px;">[${timeStr}]</span> ${cleanText}`;
+    logList.appendChild(el);
+    logList.scrollTop = logList.scrollHeight; // Otomatik kaydır
+  }
+
+  // EĞER NORMAL MESAJSA -> CHAT KUTUSUNA
+  else {
+    const chatDiv = document.getElementById("chat-messages");
+    const el = document.createElement("div");
     const isMine = message.sender === (window.state.nickname || "Player");
     el.className = `chat-msg ${isMine ? "mine" : ""}`;
     el.innerHTML = `<b>${message.sender}:</b> ${message.text}`;
+    chatDiv.appendChild(el);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
   }
-  div.appendChild(el);
-
-  div.scrollTop = div.scrollHeight; // Otomatik aşağı kaydır
 };

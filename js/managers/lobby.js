@@ -69,3 +69,31 @@ window.copyRoomCode = () => {
   navigator.clipboard.writeText(code);
   alert("Room Code Copied: " + code);
 };
+// js/managers/lobby.js dosyasının EN ALTINA ekle:
+
+window.startBotGame = () => {
+  const diff = document.getElementById("bot-difficulty").value;
+  window.Bot.difficulty = diff;
+
+  const fakeRoomId =
+    "BOT-" + Math.random().toString(36).substring(2, 5).toUpperCase();
+
+  // 1. STATE'İ SIFIRLA VE ZORLA AYARLA
+  window.state.roomId = fakeRoomId;
+  window.state.isVsComputer = true; // Bot modu açık
+  window.state.myColor = "white"; // Ben Beyazım
+  window.state.turn = "white"; // Sıra Beyazda
+  window.state.gameStarted = true; // Oyun başladı
+  window.state.nickname = "Player";
+  window.state.gameOver = false; // Oyun bitmedi
+
+  // 2. UI BAŞLAT
+  window.startGameUI(fakeRoomId);
+
+  // 3. MESAJ AT
+  window.Network.sendChatMessage(
+    fakeRoomId,
+    `Game started against Computer (${diff}).`,
+    "SYSTEM",
+  );
+};

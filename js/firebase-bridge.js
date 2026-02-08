@@ -1,5 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-// DİKKAT: onChildAdded EKLENDİ
 import {
   getDatabase,
   ref,
@@ -14,6 +13,8 @@ import {
   equalTo,
   limitToLast,
   onChildAdded,
+  onDisconnect,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   getAuth,
@@ -48,7 +49,14 @@ window.Network = {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
+        // Global: Çıkış yaparsa offline yaz
+        const statusRef = ref(db, `users/${user.uid}/status`);
+        onDisconnect(statusRef).set({
+          state: "offline",
+          timestamp: serverTimestamp(),
+        });
         window.Network.updateMyStatus("online", null, null);
+
         onLogin(user);
         window.Network.listenForInvites(user.uid);
       } else {
@@ -115,6 +123,8 @@ window.Network = {
       isPublic: isPublic === true,
     });
     await window.Network.updateMyStatus("waiting", roomId, "White");
+    // Bağlantı korumasını kur
+    window.Network.setupDisconnectAction(roomId, "white");
     return "white";
   },
 
@@ -143,26 +153,51 @@ window.Network = {
     if (!s.exists()) return { success: false, reason: "not_found" };
     const d = s.val();
 
-    if (d.playerWhite === currentUser.uid) {
-      await window.Network.updateMyStatus("playing", roomId, "White");
-      return { success: true, color: "white", isRejoin: true };
-    }
-    if (d.playerBlack === currentUser.uid) {
-      await window.Network.updateMyStatus("playing", roomId, "Black");
-      return { success: true, color: "black", isRejoin: true };
-    }
+    let myColor = null;
+    let isRejoin = false;
 
-    if (!d.playerWhite) {
+    if (d.playerWhite === currentUser.uid) {
+      myColor = "white";
+      isRejoin = true;
+    } else if (d.playerBlack === currentUser.uid) {
+      myColor = "black";
+      isRejoin = true;
+    } else if (!d.playerWhite) {
       await update(r, { playerWhite: currentUser.uid, emptyAt: null });
-      await window.Network.updateMyStatus("waiting", roomId, "White");
-      return { success: true, color: "white" };
+      myColor = "white";
     } else if (!d.playerBlack) {
       await update(r, { playerBlack: currentUser.uid, emptyAt: null });
-      await window.Network.updateMyStatus("playing", roomId, "Black");
-      return { success: true, color: "black" };
+      myColor = "black";
     } else {
       return { success: false, reason: "full" };
     }
+
+    // Durum güncelle ve Koruma Kur
+    const statusState = d.playerWhite && d.playerBlack ? "playing" : "waiting";
+    await window.Network.updateMyStatus(
+      statusState,
+      roomId,
+      myColor === "white" ? "White" : "Black",
+    );
+    window.Network.setupDisconnectAction(roomId, myColor);
+
+    return { success: true, color: myColor, isRejoin: isRejoin };
+  },
+
+  // --- BAĞLANTI KORUMASI (ÖNEMLİ KISIM) ---
+  setupDisconnectAction: (roomId, color) => {
+    if (!currentUser) return;
+    const gameRef = ref(db, "games/" + roomId);
+
+    // 1. Önce "Ben buradayım, kopmadım" de (Null yap)
+    const onlineUpdate = {};
+    onlineUpdate[`${color}Disconnected`] = null;
+    update(gameRef, onlineUpdate);
+
+    // 2. Sunucuya "Eğer ben düşersem, o ana TIMESTAMP bas" emri ver
+    const disconnectUpdate = {};
+    disconnectUpdate[`${color}Disconnected`] = serverTimestamp();
+    onDisconnect(gameRef).update(disconnectUpdate);
   },
 
   leaveGame: async (roomId, color) => {
@@ -171,15 +206,27 @@ window.Network = {
     const s = await get(r);
     if (!s.exists()) return;
     const g = s.val();
+
+    // onDisconnect emrini iptal et (Normal çıkış yapıyorum)
+    onDisconnect(r).cancel();
+
     const u = {};
-    if (color === "white") u.playerWhite = null;
-    if (color === "black") u.playerBlack = null;
+    if (color === "white") {
+      u.playerWhite = null;
+      u.whiteDisconnected = null;
+    }
+    if (color === "black") {
+      u.playerBlack = null;
+      u.blackDisconnected = null;
+    }
+
     u.status = "waiting_ready";
     u.readyWhite = false;
     u.readyBlack = false;
     const wGone = color === "white" || !g.playerWhite;
     const bGone = color === "black" || !g.playerBlack;
     if (wGone && bGone) u.emptyAt = Date.now();
+
     await update(r, u);
     await window.Network.updateMyStatus("online", null, null);
   },
@@ -201,16 +248,51 @@ window.Network = {
     update(ref(db, "games/" + roomId), { status: "playing" }),
   sendMove: (roomId, m, n) =>
     update(ref(db, "games/" + roomId), { lastMove: m, turn: n }),
-  listenGame: (roomId, cb) =>
-    onValue(ref(db, "games/" + roomId), (s) => {
-      if (s.val()) cb(s.val());
-    }),
+
+  // --- OYUN DİNLEYİCİSİ (ZAMAN AŞIMI KONTROLÜ BURADA) ---
+  listenGame: (roomId, cb) => {
+    const r = ref(db, "games/" + roomId);
+    onValue(r, (s) => {
+      if (s.val()) {
+        const data = s.val();
+        const now = Date.now();
+
+        // KONTROL: Beyaz oyuncu koptu mu?
+        if (data.whiteDisconnected && now - data.whiteDisconnected > 60000) {
+          // 60 saniyedir yok -> At onu
+          if (data.playerWhite)
+            update(r, {
+              playerWhite: null,
+              readyWhite: false,
+              status: "waiting_ready",
+              whiteDisconnected: null,
+            });
+        }
+
+        // KONTROL: Siyah oyuncu koptu mu?
+        if (data.blackDisconnected && now - data.blackDisconnected > 60000) {
+          // 60 saniyedir yok -> At onu
+          if (data.playerBlack)
+            update(r, {
+              playerBlack: null,
+              readyBlack: false,
+              status: "waiting_ready",
+              blackDisconnected: null,
+            });
+        }
+
+        cb(data);
+      }
+    });
+  },
+
   savePeerId: (roomId, c, p) => {
     const u = {};
     u[c === "white" ? "peerWhite" : "peerBlack"] = p;
     update(ref(db, "games/" + roomId), u);
   },
 
+  // --- USER DATA ---
   getMyScore: async () => {
     if (!currentUser) return 0;
     const s = await get(ref(db, "users/" + currentUser.uid + "/score"));
@@ -252,6 +334,7 @@ window.Network = {
     await window.Network.updateMyStatus("online", null, null);
   },
 
+  // --- FRIENDS ---
   sendFriendRequest: async (email) => {
     if (!currentUser) return { success: false, error: "Not logged in" };
     const s = await get(ref(db, "users"));
@@ -342,8 +425,7 @@ window.Network = {
     });
   },
 
-  // --- CHAT SYSTEM (OnChildAdded Yöntemi) ---
-  // Bu yöntem çok daha stabil çalışır
+  // --- CHAT SYSTEM ---
   sendChatMessage: async (roomId, msg, senderName) => {
     if (!currentUser || !msg.trim()) return;
     const chatRef = ref(db, `games/${roomId}/chat`);
@@ -353,14 +435,10 @@ window.Network = {
       timestamp: Date.now(),
     });
   },
-
   listenForChat: (roomId, callback) => {
     const chatRef = query(ref(db, `games/${roomId}/chat`), limitToLast(50));
-    // onValue yerine onChildAdded kullanıyoruz.
-    // Her yeni mesaj geldiğinde tek tek tetiklenir.
     onChildAdded(chatRef, (snapshot) => {
-      const msg = snapshot.val();
-      callback(msg);
+      callback(snapshot.val());
     });
   },
 };
