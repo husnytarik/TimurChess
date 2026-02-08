@@ -1,3 +1,9 @@
+/* --- TEMEL AYARLAR --- */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Mobilde tıklama rengini kapat */
+}
+
 body {
   background-color: #2c3e50;
   display: flex;
@@ -5,280 +11,87 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  height: 100dvh; /* Mobil tarayıcı çubuğu sorununu çözer */
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
-}
-
-#lobby-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #2c3e50;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
-
-.game-title {
   color: white;
-  margin-bottom: 40px;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  text-align: center;
 }
 
-.join-container {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+/* Gizleme Sınıfı */
+.hidden {
+  display: none !important;
 }
 
-.status-text {
-  color: #bdc3c7;
-  margin-top: 15px;
-  font-size: 16px;
-  min-height: 24px;
-}
-
+/* --- BUTONLAR & GİRDİLER (Genel) --- */
 .btn {
-  padding: 12px 25px;
-  font-size: 18px;
+  padding: 12px 20px;
+  font-size: 16px;
   cursor: pointer;
   border: none;
   border-radius: 8px;
   color: white;
+  font-weight: 600;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    transform 0.1s,
+    opacity 0.2s;
+  background: #7f8c8d; /* Varsayılan Gri */
 }
-
 .btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
-
 .btn-primary {
   background: #e67e22;
-}
-
+} /* Turuncu */
 .btn-success {
   background: #27ae60;
-}
-
+} /* Yeşil */
+.btn-danger {
+  background: #c0392b;
+} /* Kırmızı */
 .btn-ready {
   background: #2980b9;
-  margin-top: 20px;
-  font-weight: bold;
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  margin-top: 15px;
 }
 
 .btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
+}
+
+/* Input Alanları */
+.auth-input,
+.input-code {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-size: 16px; /* 16px altı iOS'ta zoom yapar, bunu koruyalım */
+  outline: none;
+}
+.auth-input::placeholder {
+  color: #bdc3c7;
+}
+.auth-input:focus {
+  border-color: #ecf0f1;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .input-code {
-  padding: 12px;
-  font-size: 18px;
-  width: 150px;
   text-align: center;
-  border-radius: 8px;
-  border: none;
-  outline: none;
   text-transform: uppercase;
-}
-
-#room-info {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 8px 20px;
-  border-radius: 20px;
-  color: #ecf0f1;
-  font-family: "Segoe UI", monospace;
-  font-size: 18px;
   font-weight: bold;
-  z-index: 200;
-  white-space: nowrap;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
+  letter-spacing: 2px;
 }
 
-#room-info button {
-  pointer-events: auto;
-}
-
-.highlight-text {
-  color: #f1c40f;
-  font-weight: 800;
-  letter-spacing: 1px;
-}
-
-#ui-panel {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-  align-items: center;
-  z-index: 10;
-}
-
-#status {
-  background: #34495e;
-  color: #fff;
-  padding: 10px 20px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 8px;
-  min-width: 200px;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.timer {
-  background: #2c3e50;
-  color: #ecf0f1;
-  padding: 10px;
-  font-size: 22px;
-  font-weight: bold;
-  border: 2px solid #7f8c8d;
-  border-radius: 8px;
-  min-width: 70px;
-  text-align: center;
-}
-
-#mic-btn {
-  background-color: #c0392b;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-#mic-btn.active {
-  background-color: #27ae60;
-  box-shadow: 0 0 15px #27ae60;
-  transform: scale(1.1);
-}
-
-#mic-btn:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-#game-container {
-  position: relative;
-  background-image: url("../assets/bg.jpg");
-  background-size: cover;
-  background-position: center;
-  border: 8px solid #34495e;
-  border-radius: 8px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  max-width: 95vw;
-  max-height: 75vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  touch-action: none;
-}
-
-#ready-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(44, 62, 80, 0.9);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 50;
-  backdrop-filter: blur(5px);
-  border-radius: 6px;
-}
-
-.player-row {
-  margin: 10px 0;
-  font-size: 18px;
-  color: #ecf0f1;
-}
-
-.player-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 15px;
-  margin-left: 10px;
-  font-size: 16px;
-}
-
-.tag-waiting {
-  background: #7f8c8d;
-  color: #ecf0f1;
-}
-
-.tag-ready {
-  background: #27ae60;
-  color: white;
-  box-shadow: 0 0 10px #27ae60;
-}
-
-#waiting-msg {
-  color: #bdc3c7;
-  margin-top: 15px;
-  font-style: italic;
-}
-
-.hidden {
-  display: none !important;
-}
-
-@media (max-width: 768px) {
-  #ui-panel {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-  }
-
-  .timer {
-    font-size: 16px;
-    padding: 5px 10px;
-    min-width: 50px;
-  }
-
-  #status {
-    font-size: 14px;
-    padding: 8px;
-    min-width: 150px;
-    order: 3;
-    width: 90%;
-  }
-}
-
+/* --- 1. GİRİŞ EKRANI (AUTH SCREEN) --- */
 #auth-screen {
   position: fixed;
   top: 0;
@@ -290,192 +103,150 @@ canvas {
   justify-content: center;
   align-items: center;
   z-index: 300;
+  padding: 20px; /* Kenar boşluğu */
 }
 
 .auth-box {
   background: rgba(0, 0, 0, 0.4);
-  padding: 40px;
+  padding: 30px 20px;
   border-radius: 15px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
-  width: 90%;
-  max-width: 400px;
-}
-
-.auth-input {
-  display: block;
-  margin: 10px auto;
   width: 100%;
-  max-width: 300px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
+  max-width: 400px; /* PC'de çok geniş olmasın */
+
+  /* Mobil İçin Kritik: Ekran küçükse kaydırma aç */
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.auth-input::placeholder {
-  color: #bdc3c7;
-}
-
-.auth-input:focus {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #ecf0f1;
+.game-title {
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .auth-btn-full {
   width: 100%;
-  max-width: 300px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .auth-footer {
   margin-top: 20px;
-  color: #bdc3c7;
   font-size: 14px;
+  color: #bdc3c7;
 }
-
 .auth-link {
   color: #e67e22;
-  cursor: pointer;
   font-weight: bold;
-}
-
-.auth-link:hover {
+  cursor: pointer;
   text-decoration: underline;
 }
 
 #auth-msg {
   margin-top: 15px;
-  font-weight: bold;
+  font-size: 14px;
   min-height: 20px;
 }
 
-.msg-error {
-  color: #e74c3c;
-}
-
-.msg-success {
-  color: #2ecc71;
-}
-
-.btn-logout {
-  position: absolute;
-  top: 20px;
-  left: 20px; /* SAĞ değil SOL tarafa aldık */
-  background: #c0392b;
-  font-size: 12px;
-  padding: 8px 15px;
-  z-index: 150;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-#user-badge {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 8px 15px;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  z-index: 150;
-}
-
-#user-badge:hover {
-  background: rgba(0, 0, 0, 0.8);
-  border-color: #f1c40f;
-}
-
-.badge-icon {
-  background: #ecf0f1;
-  color: #2c3e50;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-}
-
-.badge-info {
-  display: flex;
-  flex-direction: column;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: left;
-}
-
-.modal {
+/* --- 2. LOBİ EKRANI --- */
+#lobby-screen {
   position: fixed;
-  z-index: 500;
-  left: 0;
   top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px 20px 20px; /* Üstten profil badge için boşluk */
+  overflow-y: auto; /* Dikey sığmazsa kaydır */
+  z-index: 100;
+}
+
+.lobby-box {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.join-container {
+  display: flex;
+  gap: 10px;
+}
+/* Mobilde Join input ve butonu alt alta olsun */
+@media (max-width: 480px) {
+  .join-container {
+    flex-direction: column;
+  }
+  .lobby-box h3 {
+    margin-top: 0;
+  }
+}
+
+/* --- 3. MODALLER (Profil, Arkadaşlar, Odalar) --- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85); /* Arkayı biraz daha karart */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 500;
+  padding: 10px; /* Mobilde kenara yapışmasın */
 }
 
 .modal-content {
   background: #34495e;
-  padding: 30px;
-  border-radius: 15px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  color: white;
+  padding: 25px 15px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px; /* PC limiti */
+  max-height: 90vh; /* Ekrandan taşmasın */
+  overflow-y: auto; /* İçerik taşarsa kaydır */
   position: relative;
-  border: 2px solid #7f8c8d;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid #7f8c8d;
+  text-align: center;
 }
 
 .close-modal {
   position: absolute;
   top: 10px;
-  right: 20px;
+  right: 15px;
   font-size: 30px;
-  cursor: pointer;
   color: #bdc3c7;
+  cursor: pointer;
+  line-height: 20px;
 }
 
-.close-modal:hover {
-  color: white;
-}
-
+/* Profil İstatistikleri */
 .profile-stats {
   display: flex;
   justify-content: space-around;
-  margin: 20px 0;
   background: rgba(0, 0, 0, 0.2);
-  padding: 15px;
+  padding: 15px 5px;
   border-radius: 10px;
+  margin: 15px 0;
 }
-
 .stat-box {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 .stat-val {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
-}
-.stat-label {
-  font-size: 12px;
-  color: #bdc3c7;
-  text-transform: uppercase;
 }
 .win-color {
   color: #2ecc71;
@@ -487,66 +258,28 @@ canvas {
   color: #f1c40f;
 }
 
-#match-history-list {
-  max-height: 200px;
-  overflow-y: auto;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 14px;
-}
-
-.history-win {
-  border-left: 4px solid #2ecc71;
-  background: rgba(46, 204, 113, 0.1);
-}
-.history-loss {
-  border-left: 4px solid #e74c3c;
-  background: rgba(231, 76, 60, 0.1);
-}
-/* YENİ EKLENEN STİLLER */
-
-.lobby-box {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 20px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-}
-
+/* Tab Butonları */
 .profile-tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+  margin-bottom: 15px;
 }
-
 .tab-btn {
   flex: 1;
-  background: none;
+  background: transparent;
   border: none;
-  color: #bdc3c7;
-  cursor: pointer;
-  font-size: 16px;
   padding: 10px;
+  color: #95a5a6;
+  font-size: 14px;
+  cursor: pointer;
 }
-
 .tab-btn.active {
   color: white;
   font-weight: bold;
   border-bottom: 3px solid #e67e22;
 }
 
+/* Listeler (Scrollable) */
 .scroll-list {
   max-height: 200px;
   overflow-y: auto;
@@ -556,25 +289,252 @@ canvas {
   text-align: left;
 }
 
-.list-item {
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #ecf0f1;
-}
-
+.list-item,
 .public-room-item {
   background: rgba(255, 255, 255, 0.05);
   margin-bottom: 5px;
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
+  font-size: 14px;
 }
-.public-room-item:hover {
+.public-room-item:active {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- 4. OYUN ARAYÜZÜ --- */
+#game-container {
+  position: relative;
+  /* Mobilde ekranı en iyi kullanacak şekilde ayarla */
+  width: 100vmin; /* Kısa kenara göre kare */
+  height: 100vmin;
+  max-width: 600px;
+  max-height: 600px;
+
+  background-image: url("../assets/bg.jpg"); /* Varsa */
+  background-size: cover;
+  border: 4px solid #34495e;
+  border-radius: 4px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* Mobilde kaydırmayı engelle */
+}
+
+/* UI Panel (Timer, Mic) */
+#ui-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 10px;
+  margin-bottom: 5px;
+}
+
+.timer {
+  background: #2c3e50;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 18px;
+  border: 1px solid #7f8c8d;
+}
+
+#mic-btn {
+  width: 44px;
+  height: 44px; /* Dokunmatik için ideal boyut */
+  border-radius: 50%;
+  border: none;
+  background: #c0392b;
+  font-size: 20px;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+#mic-btn.active {
+  background: #27ae60;
+  box-shadow: 0 0 10px #27ae60;
+}
+
+#status {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0 10px;
+  padding: 5px;
+  background: #34495e;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- BADGE & INFO BAR --- */
+#user-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  z-index: 150;
+}
+.badge-icon {
+  font-size: 18px;
+}
+.badge-info {
+  text-align: left;
+  font-size: 12px;
+}
+
+#room-info {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 200;
+  pointer-events: none;
+}
+#room-info button {
+  pointer-events: auto;
+}
+.highlight-text {
+  color: #f1c40f;
+  font-weight: bold;
+}
+
+/* --- READY OVERLAY & CHAT --- */
+#ready-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 62, 80, 0.95);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.ready-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 12px 25px;
+  border-radius: 30px;
+  border: 2px solid #95a5a6;
+  margin-top: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.ready-toggle-container.active {
+  background: #27ae60;
+  border-color: #2ecc71;
+}
+.ready-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.ready-toggle-container.active .ready-checkbox::after {
+  content: "✔";
+}
+
+/* Chat */
+#chat-container {
+  width: 100%;
+  max-width: 600px;
+  height: 120px; /* Mobilde çok yer kaplamasın */
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #34495e;
+  border-radius: 8px;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+}
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.chat-msg {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  align-self: flex-start;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+.chat-msg.mine {
+  background: #2980b9;
+  align-self: flex-end;
+}
+.chat-input-area {
+  display: flex;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+#chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px;
+  font-size: 14px;
+  outline: none;
+}
+.btn-send {
+  background: transparent;
+  border: none;
+  color: #2ecc71;
+  font-size: 20px;
+  padding: 0 15px;
+}
+
+/* Küçük Ekranlar İçin İnce Ayar */
+@media (max-height: 600px) {
+  #game-container {
+    width: 90vmin;
+    height: 90vmin;
+  }
+  #chat-container {
+    height: 100px;
+  }
+  .game-title {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
 }
