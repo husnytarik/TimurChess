@@ -1,4 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+// DİKKAT: onChildAdded EKLENDİ
 import {
   getDatabase,
   ref,
@@ -11,6 +12,8 @@ import {
   query,
   orderByChild,
   equalTo,
+  limitToLast,
+  onChildAdded,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   getAuth,
@@ -82,7 +85,6 @@ window.Network = {
     signOut(auth);
   },
 
-  // --- STATUS & NICKNAME ---
   updateMyStatus: async (state, roomId, role) => {
     if (!currentUser) return;
     await update(ref(db, `users/${currentUser.uid}`), {
@@ -94,13 +96,11 @@ window.Network = {
       },
     });
   },
-
   setNickname: async (name) => {
     if (!currentUser) return;
     await update(ref(db, `users/${currentUser.uid}`), { nickname: name });
   },
 
-  // --- ROOMS ---
   createGame: async (roomId, isPublic) => {
     if (!currentUser) return null;
     await set(ref(db, "games/" + roomId), {
@@ -122,22 +122,16 @@ window.Network = {
     const q = query(ref(db, "games"), orderByChild("isPublic"), equalTo(true));
     const s = await get(q);
     if (!s.exists()) return [];
-
     const g = [];
     const now = Date.now();
-
     s.forEach((c) => {
       const v = c.val();
-      // Süresi dolmuş boş odaları temizle (3 dk)
       if (v.emptyAt && now - v.emptyAt > 180000) {
         remove(c.ref);
         return;
       }
-      // Sadece "waiting_ready" durumundaki ve boş yeri olan odaları göster
-      // HATA BURADAYDI: child.key yerine c.key yazmalıydık
-      if (!v.playerBlack && v.status === "waiting_ready") {
+      if (!v.playerBlack && v.status === "waiting_ready")
         g.push({ id: c.key, ...v });
-      }
     });
     return g;
   },
@@ -177,32 +171,30 @@ window.Network = {
     const s = await get(r);
     if (!s.exists()) return;
     const g = s.val();
-
     const u = {};
     if (color === "white") u.playerWhite = null;
     if (color === "black") u.playerBlack = null;
     u.status = "waiting_ready";
     u.readyWhite = false;
     u.readyBlack = false;
-
     const wGone = color === "white" || !g.playerWhite;
     const bGone = color === "black" || !g.playerBlack;
     if (wGone && bGone) u.emptyAt = Date.now();
-
     await update(r, u);
     await window.Network.updateMyStatus("online", null, null);
   },
 
-  setReady: (roomId, color) => {
+  setReady: (roomId, color, isReady) => {
     const u = {};
-    if (color === "white") u.readyWhite = true;
-    if (color === "black") u.readyBlack = true;
+    if (color === "white") u.readyWhite = isReady;
+    if (color === "black") u.readyBlack = isReady;
     update(ref(db, "games/" + roomId), u);
-    window.Network.updateMyStatus(
-      "playing",
-      roomId,
-      color === "white" ? "White" : "Black",
-    );
+    if (isReady)
+      window.Network.updateMyStatus(
+        "playing",
+        roomId,
+        color === "white" ? "White" : "Black",
+      );
   },
 
   startGame: (roomId) =>
@@ -219,16 +211,15 @@ window.Network = {
     update(ref(db, "games/" + roomId), u);
   },
 
-  // --- USER DATA ---
   getMyScore: async () => {
     if (!currentUser) return 0;
     const s = await get(ref(db, "users/" + currentUser.uid + "/score"));
     return s.val() || 1000;
   },
   getUserProfile: async (uid) => {
-    const targetUid = uid || (currentUser ? currentUser.uid : null);
-    if (!targetUid) return null;
-    return (await get(ref(db, "users/" + targetUid))).val();
+    const t = uid || (currentUser ? currentUser.uid : null);
+    if (!t) return null;
+    return (await get(ref(db, "users/" + t))).val();
   },
   getUserHistory: async () => {
     if (!currentUser) return [];
@@ -258,11 +249,9 @@ window.Network = {
       opponent: oppName || "Unknown",
       scoreChange: isWin ? "+15" : "-10",
     });
-
     await window.Network.updateMyStatus("online", null, null);
   },
 
-  // --- FRIENDS ---
   sendFriendRequest: async (email) => {
     if (!currentUser) return { success: false, error: "Not logged in" };
     const s = await get(ref(db, "users"));
@@ -308,34 +297,29 @@ window.Network = {
     if (!currentUser) return [];
     const s = await get(ref(db, `users/${currentUser.uid}/friends`));
     if (!s.exists()) return [];
-
-    const friends = [];
-    const promises = [];
-
+    const f = [];
+    const p = [];
     s.forEach((c) => {
       const uid = c.key;
-      const p = get(ref(db, `users/${uid}`)).then((userSnap) => {
-        if (userSnap.exists()) {
-          friends.push({ uid: uid, ...userSnap.val() });
-        }
-      });
-      promises.push(p);
+      p.push(
+        get(ref(db, `users/${uid}`)).then((u) => {
+          if (u.exists()) f.push({ uid: uid, ...u.val() });
+        }),
+      );
     });
-
-    await Promise.all(promises);
-    return friends;
+    await Promise.all(p);
+    return f;
   },
   removeFriend: async (uid) => {
     if (!currentUser) return;
     await remove(ref(db, `users/${currentUser.uid}/friends/${uid}`));
     await remove(ref(db, `users/${uid}/friends/${currentUser.uid}`));
   },
-
   inviteFriend: async (fuid, rid) => {
     if (!currentUser) return;
-    const myProfile = await window.Network.getUserProfile();
+    const m = await window.Network.getUserProfile();
     await set(ref(db, `users/${fuid}/invites/${rid}`), {
-      from: myProfile.nickname || currentUser.email,
+      from: m.nickname || currentUser.email,
       roomId: rid,
       timestamp: Date.now(),
     });
@@ -357,16 +341,38 @@ window.Network = {
       }
     });
   },
+
+  // --- CHAT SYSTEM (OnChildAdded Yöntemi) ---
+  // Bu yöntem çok daha stabil çalışır
+  sendChatMessage: async (roomId, msg, senderName) => {
+    if (!currentUser || !msg.trim()) return;
+    const chatRef = ref(db, `games/${roomId}/chat`);
+    await push(chatRef, {
+      sender: senderName || "Player",
+      text: msg,
+      timestamp: Date.now(),
+    });
+  },
+
+  listenForChat: (roomId, callback) => {
+    const chatRef = query(ref(db, `games/${roomId}/chat`), limitToLast(50));
+    // onValue yerine onChildAdded kullanıyoruz.
+    // Her yeni mesaj geldiğinde tek tek tetiklenir.
+    onChildAdded(chatRef, (snapshot) => {
+      const msg = snapshot.val();
+      callback(msg);
+    });
+  },
 };
 
 async function initUserData(user) {
   const r = ref(db, "users/" + user.uid);
   const s = await get(r);
   if (!s.exists()) {
-    const defaultNick = user.email.split("@")[0];
+    const d = user.email.split("@")[0];
     await set(r, {
       email: user.email,
-      nickname: defaultNick,
+      nickname: d,
       score: 1000,
       wins: 0,
       losses: 0,

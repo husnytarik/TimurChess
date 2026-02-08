@@ -40,20 +40,28 @@
             margin: 20px 0;
           "
         ></div>
-        <div id="login-form">
+        <form
+          id="login-form"
+          onsubmit="
+            event.preventDefault();
+            doLogin();
+          "
+        >
           <input
             type="email"
             id="login-email"
             class="auth-input"
             placeholder="Email"
+            autocomplete="username"
           />
           <input
             type="password"
             id="login-pass"
             class="auth-input"
             placeholder="Password"
+            autocomplete="current-password"
           />
-          <button class="btn btn-success auth-btn-full" onclick="doLogin()">
+          <button type="submit" class="btn btn-success auth-btn-full">
             LOGIN
           </button>
           <div class="auth-footer">
@@ -62,28 +70,38 @@
               >Register</span
             >
           </div>
-        </div>
-        <div id="register-form" class="hidden">
+        </form>
+
+        <form
+          id="register-form"
+          class="hidden"
+          onsubmit="
+            event.preventDefault();
+            doRegister();
+          "
+        >
           <input
             type="email"
             id="reg-email"
             class="auth-input"
             placeholder="Email"
+            autocomplete="username"
           />
           <input
             type="password"
             id="reg-pass"
             class="auth-input"
             placeholder="Password"
+            autocomplete="new-password"
           />
-          <button class="btn btn-primary auth-btn-full" onclick="doRegister()">
+          <button type="submit" class="btn btn-primary auth-btn-full">
             REGISTER
           </button>
           <div class="auth-footer">
             Has account?
             <span class="auth-link" onclick="toggleAuth('login')">Login</span>
           </div>
-        </div>
+        </form>
         <div id="auth-msg"></div>
       </div>
     </div>
@@ -342,12 +360,27 @@
             <span id="status-black" class="player-tag tag-waiting">...</span>
           </div>
         </div>
-        <button id="btn-set-ready" class="btn btn-ready" onclick="setMyReady()">
-          I'M READY!
-        </button>
+        <div class="ready-toggle-container" onclick="toggleReadyState()">
+          <div id="ready-checkbox" class="ready-checkbox"></div>
+          <span id="ready-text">NOT READY</span>
+        </div>
         <div id="waiting-msg">Waiting...</div>
       </div>
       <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div id="chat-container" class="hidden">
+      <div id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Say something..."
+          autocomplete="off"
+          onkeydown="handleChatKey(event)"
+        />
+        <button type="button" onclick="sendChat()" class="btn-send">➤</button>
+      </div>
     </div>
 
     <script type="module" src="js/firebase-bridge.js"></script>
@@ -356,6 +389,14 @@
     <script src="js/core/logic.js"></script>
     <script src="js/view/renderer.js"></script>
     <script src="js/voice.js"></script>
+
+    <script src="js/game/game-core.js"></script>
+    <script src="js/game/input.js"></script>
+    <script src="js/managers/auth.js"></script>
+    <script src="js/managers/lobby.js"></script>
+    <script src="js/managers/profile.js"></script>
+    <script src="js/managers/chat.js"></script>
+
     <script src="js/main.js"></script>
   </body>
 </html>
