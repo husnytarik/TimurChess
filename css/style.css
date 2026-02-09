@@ -632,3 +632,45 @@ input:checked + .slider:before {
   font-size: 20px;
   padding: 0 15px;
 }
+/* --- SES BUTONU DÜZELTMESİ --- */
+#voice-indicator {
+  width: 32px;
+  height: 32px;
+  /* Varsayılan: KAPALI (Kırmızı) */
+  background: rgba(192, 57, 43, 0.2);
+  border: 1px solid #c0392b;
+  color: #e74c3c; /* İkon rengi */
+
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: all 0.2s;
+}
+
+#voice-indicator:hover {
+  background: rgba(192, 57, 43, 0.4);
+}
+
+/* AKTİF HALİ: AÇIK (Yeşil) */
+#voice-indicator.active {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: #27ae60;
+  color: #2ecc71; /* İkon rengi */
+  box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+}
+
+#voice-indicator.active:hover {
+  background: rgba(46, 204, 113, 0.4);
+}
+
+/* Devre Dışı (Stream yoksa) */
+#voice-indicator:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #7f8c8d;
+  border-color: #95a5a6;
+  color: #bdc3c7;
+}

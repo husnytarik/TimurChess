@@ -174,18 +174,33 @@ class VoiceManager {
 window.Voice = new VoiceManager();
 
 // HTML onclick için global fonksiyon
+// --- GLOBAL UI FONKSİYONU ---
 window.toggleMic = function () {
-  const isOpen = window.Voice.toggleMic();
   const btn = document.getElementById("voice-indicator");
-  if (btn) {
-    if (isOpen) {
-      btn.classList.add("active");
-      // SVG: Mic On
-      btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic"></use></svg>`;
-    } else {
-      btn.classList.remove("active");
-      // SVG: Mic Off
-      btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic-off"></use></svg>`;
-    }
+  if (!btn) return;
+
+  // 1. Stream Kontrolü: Ses akışı yoksa işlem yapma
+  if (!window.Voice.myStream) {
+    console.warn("Mikrofon akışı bulunamadı (Henüz bağlanmadı veya izin yok).");
+    // Kullanıcıya görsel tepki ver (kısa süreliğine salla veya renk değiştir)
+    btn.style.transform = "translateX(2px)";
+    setTimeout(() => (btn.style.transform = "translateX(0)"), 100);
+    return;
+  }
+
+  // 2. Mantıksal Değişim (True/False döner)
+  const isMicOn = window.Voice.toggleMic();
+
+  // 3. UI GÜNCELLEMESİ (Kesin Değişim)
+  if (isMicOn) {
+    // AÇIK DURUMU
+    btn.classList.add("active");
+    // Yeşil Mikrofon İkonu
+    btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic"></use></svg>`;
+  } else {
+    // KAPALI DURUMU
+    btn.classList.remove("active");
+    // Kırmızı Mikrofon (Çizgili) İkonu
+    btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic-off"></use></svg>`;
   }
 };
