@@ -70,6 +70,7 @@ window.Network = {
     await signInWithEmailAndPassword(auth, email, pass)
       .then(() => ({ success: true }))
       .catch((e) => ({ success: false, error: e.message })),
+
   register: async (email, pass) => {
     try {
       const r = await createUserWithEmailAndPassword(auth, email, pass);
@@ -79,6 +80,7 @@ window.Network = {
       return { success: false, error: e.message };
     }
   },
+
   loginGoogle: async () => {
     try {
       const r = await signInWithPopup(auth, googleProvider);
@@ -88,6 +90,7 @@ window.Network = {
       return { success: false, error: e.message };
     }
   },
+
   logout: () => {
     if (currentUser) window.Network.updateMyStatus("offline", null, null);
     signOut(auth);
@@ -104,6 +107,7 @@ window.Network = {
       },
     });
   },
+
   setNickname: async (name) => {
     if (!currentUser) return;
     await update(ref(db, `users/${currentUser.uid}`), { nickname: name });
@@ -121,9 +125,10 @@ window.Network = {
       readyWhite: false,
       readyBlack: false,
       isPublic: isPublic === true,
+      // İsimleri de ekleyelim
+      whiteName: (await window.Network.getUserProfile()).nickname || "Player",
     });
     await window.Network.updateMyStatus("waiting", roomId, "White");
-    // Bağlantı korumasını kur
     window.Network.setupDisconnectAction(roomId, "white");
     return "white";
   },
@@ -163,16 +168,25 @@ window.Network = {
       myColor = "black";
       isRejoin = true;
     } else if (!d.playerWhite) {
-      await update(r, { playerWhite: currentUser.uid, emptyAt: null });
+      const p = await window.Network.getUserProfile();
+      await update(r, {
+        playerWhite: currentUser.uid,
+        whiteName: p.nickname,
+        emptyAt: null,
+      });
       myColor = "white";
     } else if (!d.playerBlack) {
-      await update(r, { playerBlack: currentUser.uid, emptyAt: null });
+      const p = await window.Network.getUserProfile();
+      await update(r, {
+        playerBlack: currentUser.uid,
+        blackName: p.nickname,
+        emptyAt: null,
+      });
       myColor = "black";
     } else {
       return { success: false, reason: "full" };
     }
 
-    // Durum güncelle ve Koruma Kur
     const statusState = d.playerWhite && d.playerBlack ? "playing" : "waiting";
     await window.Network.updateMyStatus(
       statusState,
@@ -184,17 +198,13 @@ window.Network = {
     return { success: true, color: myColor, isRejoin: isRejoin };
   },
 
-  // --- BAĞLANTI KORUMASI (ÖNEMLİ KISIM) ---
   setupDisconnectAction: (roomId, color) => {
     if (!currentUser) return;
     const gameRef = ref(db, "games/" + roomId);
-
-    // 1. Önce "Ben buradayım, kopmadım" de (Null yap)
     const onlineUpdate = {};
     onlineUpdate[`${color}Disconnected`] = null;
     update(gameRef, onlineUpdate);
 
-    // 2. Sunucuya "Eğer ben düşersem, o ana TIMESTAMP bas" emri ver
     const disconnectUpdate = {};
     disconnectUpdate[`${color}Disconnected`] = serverTimestamp();
     onDisconnect(gameRef).update(disconnectUpdate);
@@ -207,16 +217,17 @@ window.Network = {
     if (!s.exists()) return;
     const g = s.val();
 
-    // onDisconnect emrini iptal et (Normal çıkış yapıyorum)
     onDisconnect(r).cancel();
 
     const u = {};
     if (color === "white") {
       u.playerWhite = null;
+      u.whiteName = null;
       u.whiteDisconnected = null;
     }
     if (color === "black") {
       u.playerBlack = null;
+      u.blackName = null;
       u.blackDisconnected = null;
     }
 
@@ -249,7 +260,6 @@ window.Network = {
   sendMove: (roomId, m, n) =>
     update(ref(db, "games/" + roomId), { lastMove: m, turn: n }),
 
-  // --- OYUN DİNLEYİCİSİ (ZAMAN AŞIMI KONTROLÜ BURADA) ---
   listenGame: (roomId, cb) => {
     const r = ref(db, "games/" + roomId);
     onValue(r, (s) => {
@@ -257,24 +267,22 @@ window.Network = {
         const data = s.val();
         const now = Date.now();
 
-        // KONTROL: Beyaz oyuncu koptu mu?
         if (data.whiteDisconnected && now - data.whiteDisconnected > 60000) {
-          // 60 saniyedir yok -> At onu
           if (data.playerWhite)
             update(r, {
               playerWhite: null,
+              whiteName: null,
               readyWhite: false,
               status: "waiting_ready",
               whiteDisconnected: null,
             });
         }
 
-        // KONTROL: Siyah oyuncu koptu mu?
         if (data.blackDisconnected && now - data.blackDisconnected > 60000) {
-          // 60 saniyedir yok -> At onu
           if (data.playerBlack)
             update(r, {
               playerBlack: null,
+              blackName: null,
               readyBlack: false,
               status: "waiting_ready",
               blackDisconnected: null,
@@ -292,7 +300,6 @@ window.Network = {
     update(ref(db, "games/" + roomId), u);
   },
 
-  // --- USER DATA ---
   getMyScore: async () => {
     if (!currentUser) return 0;
     const s = await get(ref(db, "users/" + currentUser.uid + "/score"));
@@ -443,20 +450,25 @@ window.Network = {
   },
 };
 
+// --- DÜZELTİLEN FONKSİYON ---
 async function initUserData(user) {
   const r = ref(db, "users/" + user.uid);
   const s = await get(r);
-  if (!s.exists()) {
+
+  // Eğer kullanıcı hiç yoksa VEYA var ama eksikse (email yoksa)
+  // Bu "OR" kontrolü sorunu çözer.
+  if (!s.exists() || !s.val().email) {
     const d = user.email.split("@")[0];
-    await set(r, {
+    await update(r, {
       email: user.email,
       nickname: d,
       score: 1000,
       wins: 0,
       losses: 0,
-      status: { state: "online", timestamp: Date.now() },
+      // Status zaten varsa koru, yoksa oluştur
     });
-  } else {
-    update(r, { status: { state: "online", timestamp: Date.now() } });
   }
+
+  // Status her zaman güncellenir
+  update(r, { status: { state: "online", timestamp: Date.now() } });
 }

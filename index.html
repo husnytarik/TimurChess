@@ -71,7 +71,6 @@
             >
           </div>
         </form>
-
         <form
           id="register-form"
           class="hidden"
@@ -188,8 +187,86 @@
           🔍 Find Public Rooms
         </button>
       </div>
-
       <div id="lobby-status" class="status-text"></div>
+    </div>
+
+    <div id="game-header-bar" class="hidden">
+      <div class="header-left">
+        <div class="room-badge">
+          ROOM: <span id="display-room-id">---</span>
+        </div>
+      </div>
+      <button class="btn-profile-fixed" onclick="openProfile()">
+        👤 <span id="badge-nickname-game">Player</span>
+      </button>
+    </div>
+
+    <div id="middle-area" class="hidden">
+      <div id="ui-panel" class="compact-ui">
+        <div class="player-group left">
+          <div id="status-white" class="player-dot" title="White Status"></div>
+          <div id="timer-white" class="timer-compact">10:00</div>
+        </div>
+
+        <div class="center-controls">
+          <button
+            id="voice-indicator"
+            class="btn-icon-tiny"
+            onclick="window.Voice.toggleMute()"
+          >
+            🎙️
+          </button>
+
+          <div class="status-wrapper">
+            <div id="status" class="status-text-compact">WAITING...</div>
+          </div>
+
+          <div id="ready-overlay" class="ready-compact">
+            <label class="switch-tiny">
+              <input
+                type="checkbox"
+                id="chk-ready"
+                onchange="toggleReadyState()"
+              />
+              <span class="slider-tiny round"></span>
+            </label>
+          </div>
+
+          <button onclick="leaveRoom()" class="btn-icon-tiny btn-exit">
+            ❌
+          </button>
+        </div>
+
+        <div class="player-group right">
+          <div id="timer-black" class="timer-compact">10:00</div>
+          <div id="status-black" class="player-dot" title="Black Status"></div>
+        </div>
+      </div>
+
+      <div id="game-container">
+        <div class="canvas-wrapper">
+          <canvas id="gameCanvas"></canvas>
+        </div>
+      </div>
+
+      <div id="log-container">
+        <div class="log-header">📜 Move History</div>
+        <div id="log-list"></div>
+      </div>
+    </div>
+
+    <div id="chat-container" class="hidden">
+      <div id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Say something..."
+          autocomplete="off"
+          onkeydown="handleChatKey(event)"
+        />
+        <button type="button" onclick="sendChat()" class="btn-send">➤</button>
+      </div>
     </div>
 
     <div id="public-rooms-modal" class="modal hidden">
@@ -231,7 +308,7 @@
           </div>
         </div>
 
-        <div class="profile-tabs" style="margin-top: 20px">
+        <div class="profile-tabs">
           <button class="tab-btn active" onclick="switchTab('friends')">
             Friends
           </button>
@@ -271,15 +348,16 @@
         <div id="tab-history" class="tab-content hidden">
           <div class="profile-stats">
             <div class="stat-box">
-              <span id="stat-wins" class="win-color">0</span><span>Wins</span>
+              <span id="stat-wins" class="stat-val win-color">0</span>
+              <span class="stat-label">WINS</span>
             </div>
             <div class="stat-box">
-              <span id="stat-losses" class="lose-color">0</span
-              ><span>Losses</span>
+              <span id="stat-losses" class="stat-val lose-color">0</span>
+              <span class="stat-label">LOSSES</span>
             </div>
             <div class="stat-box">
-              <span id="stat-score" class="score-color">0</span
-              ><span>Score</span>
+              <span id="stat-score" class="stat-val score-color">0</span>
+              <span class="stat-label">SCORE</span>
             </div>
           </div>
           <div id="match-history-list" class="scroll-list"></div>
@@ -308,14 +386,25 @@
         >
         <div style="font-size: 50px; margin-bottom: 10px">👤</div>
         <h2 id="fd-nickname" style="margin: 0; color: #f1c40f">...</h2>
-        <div id="fd-email" style="color: #bdc3c7; margin-bottom: 20px">...</div>
+        <div
+          id="fd-email"
+          style="color: #bdc3c7; margin-bottom: 20px; font-size: 12px"
+        >
+          ...
+        </div>
 
         <div class="profile-stats">
           <div class="stat-box">
-            <span id="fd-wins" class="win-color">0</span><span>Wins</span>
+            <span id="fd-wins" class="stat-val win-color">0</span>
+            <span class="stat-label">WINS</span>
           </div>
           <div class="stat-box">
-            <span id="fd-score" class="score-color">0</span><span>Score</span>
+            <span id="fd-losses" class="stat-val lose-color">0</span>
+            <span class="stat-label">LOSSES</span>
+          </div>
+          <div class="stat-box">
+            <span id="fd-score" class="stat-val score-color">0</span>
+            <span class="stat-label">SCORE</span>
           </div>
         </div>
 
@@ -330,93 +419,7 @@
         >
           Checking status...
         </div>
-
         <div id="fd-actions" style="margin-top: 15px"></div>
-      </div>
-    </div>
-
-    <div id="room-info" class="hidden">
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          justify-content: center;
-          flex-wrap: wrap;
-        "
-      >
-        <span
-          >Room:
-          <span id="display-room-id" class="highlight-text">...</span></span
-        >
-        <button
-          onclick="copyRoomCode()"
-          class="btn"
-          style="
-            padding: 5px 10px;
-            font-size: 12px;
-            background: #34495e;
-            border: 1px solid #7f8c8d;
-          "
-        >
-          📋 Copy Code
-        </button>
-        <span>Role: <span id="my-role" class="highlight-text">...</span></span>
-      </div>
-    </div>
-
-    <div id="ui-panel" class="hidden">
-      <div id="timer-white" class="timer">10:00</div>
-      <button id="mic-btn" onclick="toggleMic()">🎙️</button>
-      <div id="status">Waiting...</div>
-      <button
-        onclick="leaveRoom()"
-        class="btn"
-        style="background: #c0392b; font-size: 12px; padding: 5px 10px"
-      >
-        Leave
-      </button>
-      <div id="timer-black" class="timer">10:00</div>
-    </div>
-
-    <div id="game-container" class="hidden">
-      <div id="ready-overlay">
-        <h2>Waiting for Players</h2>
-        <div class="ready-status">
-          <div>
-            White:
-            <span id="status-white" class="player-tag tag-waiting">...</span>
-          </div>
-          <div>
-            Black:
-            <span id="status-black" class="player-tag tag-waiting">...</span>
-          </div>
-        </div>
-        <div class="ready-toggle-container" onclick="toggleReadyState()">
-          <div id="ready-checkbox" class="ready-checkbox"></div>
-          <span id="ready-text">NOT READY</span>
-        </div>
-        <div id="waiting-msg">Waiting...</div>
-      </div>
-      <canvas id="gameCanvas"></canvas>
-    </div>
-
-    <div id="log-container" class="hidden">
-      <div class="log-header">📜 Move History</div>
-      <div id="log-list"></div>
-    </div>
-
-    <div id="chat-container" class="hidden">
-      <div id="chat-messages"></div>
-      <div class="chat-input-area">
-        <input
-          type="text"
-          id="chat-input"
-          placeholder="Say something..."
-          autocomplete="off"
-          onkeydown="handleChatKey(event)"
-        />
-        <button type="button" onclick="sendChat()" class="btn-send">➤</button>
       </div>
     </div>
 
@@ -426,7 +429,6 @@
     <script src="js/core/logic.js"></script>
     <script src="js/view/renderer.js"></script>
     <script src="js/voice.js"></script>
-
     <script src="js/game/game-core.js"></script>
     <script src="js/game/input.js"></script>
     <script src="js/managers/auth.js"></script>

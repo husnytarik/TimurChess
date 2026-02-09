@@ -29,44 +29,48 @@ window.state = {
 };
 
 window.startGameUI = (roomId) => {
-  // UI Temizliği
   document.getElementById("lobby-screen").classList.add("hidden");
-  document.getElementById("room-info").classList.remove("hidden");
-  document.getElementById("ui-panel").classList.remove("hidden");
+  document.getElementById("game-header-bar").classList.remove("hidden");
+  document.getElementById("middle-area").classList.remove("hidden");
+  document.getElementById("chat-container").classList.remove("hidden");
   document.getElementById("game-container").classList.remove("hidden");
+  document.getElementById("ui-panel").classList.remove("hidden");
   document.getElementById("log-container").classList.remove("hidden");
   document.getElementById("chat-container").classList.remove("hidden");
 
+  // 3. İÇERİKLERİ DOLDUR
   document.getElementById("log-list").innerHTML = "";
   document.getElementById("display-room-id").textContent = roomId;
-  document.getElementById("my-role").textContent =
-    window.state.myColor === "white" ? "WHITE" : "BLACK";
+
+  // --- DEĞİŞİKLİK BURADA: Rol (my-role) satırını sildik çünkü HTML'den kaldırdık ---
+
+  // Profil (Varsa)
+  window.Network.getUserProfile().then((p) => {
+    if (p) {
+      window.state.nickname = p.nickname;
+      const badgeGame = document.getElementById("badge-nickname-game");
+      if (badgeGame) badgeGame.textContent = p.nickname;
+    }
+  });
 
   // Chat Başlat
   window.Network.listenForChat(roomId, window.renderChatMessages);
 
-  // Profil
-  window.Network.getUserProfile().then((p) => {
-    if (p) window.state.nickname = p.nickname;
-  });
-
-  // Oyunu Kur
+  // Tahtayı Kur
   initGame();
 
   // --- AYRIM: BOT MU ONLINE MI? ---
   if (window.state.isVsComputer) {
-    console.log("Bot modu aktif. Sunucu dinlenmiyor.");
-    document.getElementById("ready-overlay").classList.add("hidden");
+    console.log("Bot modu aktif.");
+    const readyOverlay = document.getElementById("ready-overlay");
+    if (readyOverlay) readyOverlay.classList.add("hidden");
 
-    // ZORLA BAŞLAT
     window.state.gameStarted = true;
     window.state.turn = "white";
     window.updateStatusText();
-
-    // --- EKLENEN SATIR: SAYACI BAŞLAT ---
     startTimer();
   } else {
-    console.log("Online mod aktif. Sunucu dinleniyor.");
+    console.log("Online mod aktif.");
     const myVoiceId = `${roomId}_${window.state.myColor}`;
     window.Voice.init(myVoiceId).then(() =>
       window.Network.savePeerId(roomId, window.state.myColor, myVoiceId),

@@ -1,29 +1,28 @@
-/* --- TEMEL AYARLAR --- */
+/* --- 1. TEMEL AYARLAR (RESET & BODY) --- */
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Mobilde tıklama rengini kapat */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background-color: #2c3e50;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  height: 100dvh; /* Mobil tarayıcı çubuğu sorununu çözer */
+  justify-content: space-between; /* Üst ve Altı uçlara it (App Layout) */
+  height: 100dvh; /* Mobil tarayıcılar için dinamik yükseklik */
+  width: 100vw;
   margin: 0;
+  padding: 0;
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  overflow: hidden; /* Sayfa kaymasın */
   color: white;
 }
 
-/* Gizleme Sınıfı */
 .hidden {
   display: none !important;
 }
 
-/* --- BUTONLAR & GİRDİLER (Genel) --- */
+/* --- 2. ORTAK BUTON VE INPUT STİLLERİ --- */
 .btn {
   padding: 12px 20px;
   font-size: 16px;
@@ -35,35 +34,27 @@ body {
   transition:
     transform 0.1s,
     opacity 0.2s;
-  background: #7f8c8d; /* Varsayılan Gri */
+  background: #7f8c8d;
 }
 .btn:active {
   transform: scale(0.96);
 }
-.btn-primary {
-  background: #e67e22;
-} /* Turuncu */
-.btn-success {
-  background: #27ae60;
-} /* Yeşil */
-.btn-danger {
-  background: #c0392b;
-} /* Kırmızı */
-.btn-ready {
-  background: #2980b9;
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  margin-top: 15px;
-}
-
 .btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* Input Alanları */
+.btn-primary {
+  background: #e67e22;
+}
+.btn-success {
+  background: #27ae60;
+}
+.btn-danger {
+  background: #c0392b;
+}
+
 .auth-input,
 .input-code {
   width: 100%;
@@ -73,26 +64,23 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   border-radius: 8px;
-  font-size: 16px; /* 16px altı iOS'ta zoom yapar, bunu koruyalım */
+  font-size: 16px;
   outline: none;
-}
-.auth-input::placeholder {
-  color: #bdc3c7;
 }
 .auth-input:focus {
   border-color: #ecf0f1;
   background: rgba(255, 255, 255, 0.2);
 }
-
 .input-code {
   text-align: center;
   text-transform: uppercase;
-  font-weight: bold;
   letter-spacing: 2px;
+  font-weight: bold;
 }
 
-/* --- 1. GİRİŞ EKRANI (AUTH SCREEN) --- */
-#auth-screen {
+/* --- 3. LOGIN & LOBBY EKRANLARI --- */
+#auth-screen,
+#lobby-screen {
   position: fixed;
   top: 0;
   left: 0;
@@ -100,25 +88,28 @@ body {
   height: 100%;
   background: #2c3e50;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 300;
-  padding: 20px; /* Kenar boşluğu */
+  padding: 20px;
+  overflow-y: auto;
+}
+#lobby-screen {
+  padding-top: 60px;
+  justify-content: flex-start;
 }
 
-.auth-box {
+.auth-box,
+.lobby-box {
   background: rgba(0, 0, 0, 0.4);
-  padding: 30px 20px;
+  padding: 20px;
   border-radius: 15px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
   width: 100%;
-  max-width: 400px; /* PC'de çok geniş olmasın */
-
-  /* Mobil İçin Kritik: Ekran küçükse kaydırma aç */
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 400px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .game-title {
@@ -126,12 +117,6 @@ body {
   margin-bottom: 20px;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
-
-.auth-btn-full {
-  width: 100%;
-  margin-top: 10px;
-}
-
 .auth-footer {
   margin-top: 20px;
   font-size: 14px;
@@ -143,110 +128,100 @@ body {
   cursor: pointer;
   text-decoration: underline;
 }
-
-#auth-msg {
-  margin-top: 15px;
-  font-size: 14px;
-  min-height: 20px;
-}
-
-/* --- 2. LOBİ EKRANI --- */
-#lobby-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #2c3e50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 20px 20px 20px; /* Üstten profil badge için boşluk */
-  overflow-y: auto; /* Dikey sığmazsa kaydır */
-  z-index: 100;
-}
-
-.lobby-box {
-  background: rgba(0, 0, 0, 0.25);
-  padding: 20px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 .join-container {
   display: flex;
   gap: 10px;
 }
-/* Mobilde Join input ve butonu alt alta olsun */
 @media (max-width: 480px) {
   .join-container {
     flex-direction: column;
   }
-  .lobby-box h3 {
-    margin-top: 0;
-  }
 }
 
-/* --- 3. MODALLER (Profil, Arkadaşlar, Odalar) --- */
+/* --- 4. MODALLER (PROFIL, ARKADAŞLAR) --- */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85); /* Arkayı biraz daha karart */
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 500;
-  padding: 10px; /* Mobilde kenara yapışmasın */
 }
-
 .modal-content {
   background: #34495e;
-  padding: 25px 15px;
+  padding: 25px;
   border-radius: 12px;
   width: 100%;
-  max-width: 500px; /* PC limiti */
-  max-height: 90vh; /* Ekrandan taşmasın */
-  overflow-y: auto; /* İçerik taşarsa kaydır */
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid #7f8c8d;
   text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
-
 .close-modal {
   position: absolute;
   top: 10px;
   right: 15px;
   font-size: 30px;
-  color: #bdc3c7;
   cursor: pointer;
-  line-height: 20px;
+  color: #bdc3c7;
 }
 
-/* Profil İstatistikleri */
+/* Profil Tabs */
+.profile-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 20px 0 15px 0;
+}
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px;
+  color: #95a5a6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+.tab-btn.active {
+  color: white;
+  border-bottom: 3px solid #e67e22;
+}
+
+/* İstatistik Kutuları */
 .profile-stats {
   display: flex;
-  justify-content: space-around;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 15px 5px;
-  border-radius: 10px;
-  margin: 15px 0;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 20px 0;
 }
 .stat-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px 5px;
+  border-radius: 8px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .stat-val {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #95a5a6;
+  margin-top: 5px;
+  font-weight: 600;
 }
 .win-color {
   color: #2ecc71;
@@ -258,28 +233,7 @@ body {
   color: #f1c40f;
 }
 
-/* Tab Butonları */
-.profile-tabs {
-  display: flex;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 15px;
-}
-.tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 10px;
-  color: #95a5a6;
-  font-size: 14px;
-  cursor: pointer;
-}
-.tab-btn.active {
-  color: white;
-  font-weight: bold;
-  border-bottom: 3px solid #e67e22;
-}
-
-/* Listeler (Scrollable) */
+/* Listeler */
 .scroll-list {
   max-height: 200px;
   overflow-y: auto;
@@ -288,204 +242,320 @@ body {
   padding: 5px;
   text-align: left;
 }
-
 .list-item,
-.public-room-item {
+.history-item {
   background: rgba(255, 255, 255, 0.05);
   margin-bottom: 5px;
   padding: 10px;
   border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Arkadaş Listesi Özel */
+.friend-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 8px 12px;
+}
+.friend-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.friend-name {
+  font-weight: bold;
+  color: white;
   font-size: 14px;
 }
-.public-room-item:active {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* --- 4. OYUN ARAYÜZÜ --- */
-#game-container {
-  position: relative;
-  /* Mobilde ekranı en iyi kullanacak şekilde ayarla */
-  width: 100vmin; /* Kısa kenara göre kare */
-  height: 100vmin;
-  max-width: 600px;
-  max-height: 600px;
-
-  background-image: url("../assets/bg.jpg"); /* Varsa */
-  background-size: cover;
-  border: 4px solid #34495e;
-  border-radius: 4px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: center;
+.history-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: center;
   align-items: center;
 }
 
-canvas {
+/* --- 5. OYUN EKRANI (APP LAYOUT) --- */
+
+/* 5.1 HEADER (SABİT ÜST) */
+#game-header-bar {
+  flex: 0 0 50px;
   width: 100%;
-  height: 100%;
-  display: block;
-  touch-action: none; /* Mobilde kaydırmayı engelle */
+  background: #34495e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+.header-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.room-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ecf0f1;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.btn-profile-fixed,
+#user-badge {
+  background: #e67e22;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+#user-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 150;
 }
 
-/* UI Panel (Timer, Mic) */
+/* 5.2 ORTA ALAN (ESNEK) */
+#middle-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow-y: auto;
+  padding: 5px;
+  gap: 5px;
+}
+#ui-panel,
+#game-container,
+#log-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0;
+}
+
+/* UI Panel (Timer & Controls) */
 #ui-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.timer-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  max-width: 600px;
-  padding: 0 10px;
-  margin-bottom: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 5px 10px;
+  border-radius: 8px;
 }
-
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .timer {
   background: #2c3e50;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
   font-weight: bold;
   font-family: monospace;
-  font-size: 18px;
+  font-size: 16px;
   border: 1px solid #7f8c8d;
 }
-
-#mic-btn {
-  width: 44px;
-  height: 44px; /* Dokunmatik için ideal boyut */
+.player-tag {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #7f8c8d;
+}
+.tag-ready {
+  background: #2ecc71;
+}
+.tag-waiting {
+  background: #f1c40f;
+  color: black;
+}
+.voice-icon-small {
+  width: 32px;
+  height: 32px;
+  background: #34495e;
   border-radius: 50%;
-  border: none;
-  background: #c0392b;
-  font-size: 20px;
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #7f8c8d;
+  font-size: 14px;
 }
-#mic-btn.active {
-  background: #27ae60;
-  box-shadow: 0 0 10px #27ae60;
+.voice-icon-small.active {
+  background: #2ecc71;
+  border-color: #27ae60;
+  box-shadow: 0 0 8px #2ecc71;
 }
 
-#status {
+.game-controls {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+.status-bar {
   flex: 1;
   text-align: center;
   font-size: 14px;
   font-weight: bold;
-  margin: 0 10px;
-  padding: 5px;
+  padding: 8px;
   background: #34495e;
   border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/* --- BADGE & INFO BAR --- */
-#user-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 5px 12px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  z-index: 150;
-}
-.badge-icon {
-  font-size: 18px;
-}
-.badge-info {
-  text-align: left;
+.btn-leave {
+  background: #c0392b;
+  border-radius: 4px;
   font-size: 12px;
-}
-
-#room-info {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 5px 15px;
-  border-radius: 15px;
-  font-size: 14px;
-  white-space: nowrap;
-  z-index: 200;
-  pointer-events: none;
-}
-#room-info button {
-  pointer-events: auto;
-}
-.highlight-text {
-  color: #f1c40f;
+  padding: 8px 15px;
+  border: none;
+  color: white;
   font-weight: bold;
 }
 
-/* --- READY OVERLAY & CHAT --- */
-#ready-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(44, 62, 80, 0.95);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
+/* Hazır Ol Switch */
 .ready-toggle-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 12px 25px;
-  border-radius: 30px;
-  border: 2px solid #95a5a6;
-  margin-top: 25px;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
   cursor: pointer;
-  transition: all 0.3s;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #95a5a6;
+  transition: 0.4s;
+  border-radius: 34px;
 }
-.ready-toggle-container.active {
-  background: #27ae60;
-  border-color: #2ecc71;
-}
-.ready-checkbox {
-  width: 24px;
-  height: 24px;
-  border: 2px solid white;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
   border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #2ecc71;
+}
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+#ready-text {
+  font-weight: bold;
+  font-size: 14px;
+  color: #bdc3c7;
+}
+
+/* Oyun Tahtası (Kare Koruma) */
+#game-container {
+  /* Formül: Ekranın enine veya boyuna göre hangisi küçükse onu al (Kare kalması için) */
+  width: min(95vw, 55dvh);
+  height: min(95vw, 55dvh);
+  flex-shrink: 0; /* Asla ezilme */
+
+  background-color: #2c2c2c;
+  border: 3px solid #696969;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.ready-toggle-container.active .ready-checkbox::after {
-  content: "✔";
+.canvas-wrapper,
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
 }
 
-/* Chat */
-#chat-container {
-  width: 100%;
-  max-width: 600px;
-  height: 120px; /* Mobilde çok yer kaplamasın */
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #34495e;
+/* Log Kutusu */
+#log-container {
+  height: 80px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #7f8c8d;
   border-radius: 8px;
-  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+}
+.log-header {
+  background: #2c3e50;
+  color: #bdc3c7;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 8px 8px 0 0;
+  font-weight: bold;
+  border-bottom: 1px solid #34495e;
+}
+#log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 5px;
+  font-family: monospace;
+  font-size: 12px;
+}
+.log-item {
+  color: #f1c40f;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 5.3 CHAT (SABİT ALT) */
+#chat-container {
+  flex: 0 0 100px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px 15px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
 }
 #chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -506,6 +576,7 @@ canvas {
 .chat-input-area {
   display: flex;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 #chat-input {
   flex: 1;
@@ -523,58 +594,256 @@ canvas {
   font-size: 20px;
   padding: 0 15px;
 }
-
-/* Küçük Ekranlar İçin İnce Ayar */
-@media (max-height: 600px) {
-  #game-container {
-    width: 90vmin;
-    height: 90vmin;
-  }
-  #chat-container {
-    height: 100px;
-  }
-  .game-title {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-}
-/* --- LOG CONTAINER --- */
-#log-container {
-  width: 100%;
-  max-width: 600px;
-  height: 100px; /* Sabit yükseklik */
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid #7f8c8d;
-  border-radius: 8px;
-  margin-top: 5px;
+/* --- UI PANEL (FIXED & COMPACT) --- */
+#ui-panel.compact-ui {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  max-width: 600px; /* PC'de çok yayılmasın */
+  height: 48px; /* Parmakla basmak için ideal yükseklik */
+
+  background: #34495e;
+  padding: 0 8px; /* Kenarlardan güvenli boşluk */
+  margin: 0;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  box-sizing: border-box; /* Padding dahil hesapla (TAŞMAYI ÖNLER) */
+  flex-shrink: 0; /* Asla ezilme */
 }
 
-.log-header {
-  background: #2c3e50;
-  color: #bdc3c7;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 8px 8px 0 0;
+/* Oyuncu Grupları (Sabit Genişlik Yerine Esnek) */
+.player-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  height: 36px;
+  flex-shrink: 0; /* Süreler asla küçülmesin */
+}
+
+/* Renk İşaretçileri */
+.player-group.left {
+  border-left: 3px solid #ecf0f1;
+}
+.player-group.right {
+  border-right: 3px solid #2c2c2c;
+}
+
+.player-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7f8c8d; /* Varsayılan Gri */
+  transition: background 0.3s;
+}
+/* JS Renkleri */
+.player-tag.tag-ready {
+  background-color: #2ecc71 !important;
+}
+.player-tag.tag-waiting {
+  background-color: #f1c40f !important;
+}
+
+.timer-compact {
+  font-family: monospace;
+  font-size: 15px;
   font-weight: bold;
-  border-bottom: 1px solid #34495e;
+  color: white;
 }
 
-#log-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 5px;
-  font-family: "Courier New", Courier, monospace; /* Kod görünümü */
+/* --- ORTA ALAN (ESNEK & GÜVENLİ) --- */
+.center-controls {
+  flex: 1; /* Boşluğu doldur */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  /* KRİTİK: İçerik taşarsa dışarı sızdırma, nokta koy */
+  min-width: 0;
+  padding: 0 5px;
+}
+
+.status-wrapper {
+  flex: 1; /* Ortadaki boşluğu kapla */
+  min-width: 0; /* Flexbox taşma fix'i */
+  text-align: center;
+}
+
+.status-text-compact {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ecf0f1;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  /* Uzun metni kesip ... koy */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Butonlar */
+.btn-icon-tiny {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 0;
+  flex-shrink: 0; /* Küçülmesin */
+}
+.btn-exit {
+  background: #c0392b;
+  border-color: #e74c3c;
   font-size: 12px;
 }
 
-.log-item {
-  color: #f1c40f; /* Sarı yazı */
-  margin-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+/* Minik Switch */
+.ready-compact {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.switch-tiny {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.switch-tiny input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider-tiny {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #95a5a6;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+.slider-tiny:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider-tiny {
+  background-color: #2ecc71;
+}
+input:checked + .slider-tiny:before {
+  transform: translateX(16px);
 }
 
-.log-item span {
-  color: #ecf0f1;
+/* Aktif Mic */
+#voice-indicator.active {
+  background: #2ecc71;
+  border-color: #27ae60;
+}
+/* --- LOBBY WAITING OVERLAY (OYUN ALANI ÜZERİNDE) --- */
+#lobby-waiting-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 62, 80, 0.95); /* Koyu Yarı Saydam */
+  z-index: 50; /* Canvas'ın üstünde */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+#lobby-waiting-overlay h3 {
+  color: #f1c40f;
+  margin-top: 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.lobby-players {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  margin: 20px 0;
+  justify-content: center;
+}
+
+.l-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  width: 100px;
+}
+
+.l-role {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.l-name {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+.l-status {
+  font-size: 16px;
+}
+
+.vs-divider {
+  font-weight: bold;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.lobby-controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#ready-text-big {
+  font-weight: bold;
+  color: #bdc3c7;
+  font-size: 14px;
 }
