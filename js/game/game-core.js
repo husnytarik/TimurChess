@@ -88,19 +88,20 @@ window.leaveRoom = async () => {
 };
 
 window.toggleReadyState = () => {
-  if (window.state.isVsComputer) return; // Botta ready yok
+  if (window.state.isVsComputer) return;
 
-  window.state.isReady = !window.state.isReady;
-  const container = document.querySelector(".ready-toggle-container");
-  const text = document.getElementById("ready-text");
+  // Yeni checkbox'ı bul
+  const chk = document.getElementById("chk-ready-big");
+  window.state.isReady = chk ? chk.checked : !window.state.isReady;
 
-  if (window.state.isReady) {
-    container.classList.add("active");
-    text.textContent = "I'M READY!";
-  } else {
-    container.classList.remove("active");
-    text.textContent = "NOT READY";
+  // Yazıyı Güncelle
+  const txt = document.getElementById("ready-text-big");
+  if (txt) {
+    txt.textContent = window.state.isReady ? "I'M READY!" : "ARE YOU READY?";
+    txt.style.color = window.state.isReady ? "#2ecc71" : "#bdc3c7";
   }
+
+  // Sunucuya bildir
   window.Network.setReady(
     window.state.roomId,
     window.state.myColor,
@@ -118,33 +119,67 @@ function initGame() {
 }
 
 let lastProcessedMove = null;
+// --- SVG İKONLAR (IOS UYUMLU) ---
+const ICONS = {
+  CHECK: `<svg class="svg-icon" style="color:#2ecc71"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`, // TİK
+  CROSS: `<svg class="svg-icon" style="color:#e74c3c"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`, // ÇARPI
+  WAIT: `<svg class="svg-icon" style="color:#f1c40f"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v6zm0-8h-2V7h2v2z"/></svg>`, // SAAT
+};
+
 function handleServerUpdate(data) {
   if (!data) return;
 
-  // UI Güncellemeleri (Ready vs)
-  const wS = document.getElementById("status-white");
-  const bS = document.getElementById("status-black");
+  // --- LOBİ GÜNCELLEMESİ (İSİMLER & İKONLAR) ---
+  const pWhite = document.getElementById("lobby-p-white");
+  const sWhite = document.getElementById("lobby-s-white");
+  const pBlack = document.getElementById("lobby-p-black");
+  const sBlack = document.getElementById("lobby-s-black");
 
+  // Beyaz Oyuncu
   if (data.playerWhite) {
-    wS.textContent = data.readyWhite ? "READY" : "WAITING";
-    wS.className = data.readyWhite
-      ? "player-tag tag-ready"
-      : "player-tag tag-waiting";
+    pWhite.textContent = data.whiteName || "Player 1";
+    sWhite.innerHTML = data.readyWhite ? ICONS.CHECK : ICONS.CROSS;
+  } else {
+    pWhite.textContent = "Waiting...";
+    sWhite.innerHTML = ICONS.WAIT;
   }
+
+  // Siyah Oyuncu
   if (data.playerBlack) {
-    bS.textContent = data.readyBlack ? "READY" : "WAITING";
-    bS.className = data.readyBlack
-      ? "player-tag tag-ready"
-      : "player-tag tag-waiting";
+    pBlack.textContent = data.blackName || "Player 2";
+    sBlack.innerHTML = data.readyBlack ? ICONS.CHECK : ICONS.CROSS;
+  } else {
+    pBlack.textContent = "Waiting...";
+    sBlack.innerHTML = ICONS.WAIT;
   }
 
-  if (window.state.myColor === "white" && data.peerBlack && !window.Voice.call)
-    window.Voice.connectToPeer(data.peerBlack);
+  // --- MİNİ STATUS BAR (NOKTALAR) ---
+  const dotWhite = document.getElementById("status-white");
+  const dotBlack = document.getElementById("status-black");
 
-  if (data.status === "playing" && !window.state.gameStarted) {
-    window.state.gameStarted = true;
-    document.getElementById("ready-overlay").classList.add("hidden");
-    startTimer();
+  if (dotWhite) {
+    if (data.readyWhite) dotWhite.style.background = "#2ecc71";
+    else if (data.playerWhite) dotWhite.style.background = "#f1c40f";
+    else dotWhite.style.background = "#7f8c8d";
+  }
+  if (dotBlack) {
+    if (data.readyBlack) dotBlack.style.background = "#2ecc71";
+    else if (data.playerBlack) dotBlack.style.background = "#f1c40f";
+    else dotBlack.style.background = "#7f8c8d";
+  }
+
+  // --- OYUN BAŞLAMA ---
+  if (data.status === "playing") {
+    if (!window.state.gameStarted) {
+      window.state.gameStarted = true;
+      // Lobiyi Gizle
+      document.getElementById("lobby-waiting-overlay").classList.add("hidden");
+      // Varsa mini ready butonunu da gizle
+      const miniReady = document.getElementById("ready-overlay");
+      if (miniReady) miniReady.classList.add("hidden");
+
+      startTimer();
+    }
   } else if (
     data.status !== "playing" &&
     data.readyWhite &&
@@ -154,9 +189,15 @@ function handleServerUpdate(data) {
     window.Network.startGame(window.state.roomId);
   }
 
+  // Ses
+  if (window.state.myColor === "white" && data.peerBlack && !window.Voice.call)
+    window.Voice.connectToPeer(data.peerBlack);
+
+  // Oyun Durumu
   window.state.turn = data.turn;
   window.updateStatusText();
 
+  // Hareket İşleme
   if (
     data.lastMove &&
     JSON.stringify(data.lastMove) !== JSON.stringify(lastProcessedMove)
@@ -179,7 +220,6 @@ function handleServerUpdate(data) {
     checkGameState();
   }
 }
-
 window.updateStatusText = () => {
   const statusDiv = document.getElementById("status");
 

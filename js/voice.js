@@ -176,14 +176,16 @@ window.Voice = new VoiceManager();
 // HTML onclick için global fonksiyon
 window.toggleMic = function () {
   const isOpen = window.Voice.toggleMic();
-  const btn = document.getElementById("voice-indicator"); // İd güncelledik
+  const btn = document.getElementById("voice-indicator");
   if (btn) {
     if (isOpen) {
       btn.classList.add("active");
-      btn.style.opacity = "1";
+      // SVG: Mic On
+      btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic"></use></svg>`;
     } else {
       btn.classList.remove("active");
-      btn.style.opacity = "0.5";
+      // SVG: Mic Off
+      btn.innerHTML = `<svg class="svg-icon"><use href="#icon-mic-off"></use></svg>`;
     }
   }
 };
