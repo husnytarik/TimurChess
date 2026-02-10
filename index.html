@@ -346,7 +346,20 @@
       <div class="modal-content" style="max-width: 600px">
         <span class="close-modal" onclick="closeProfile()">&times;</span>
         <div class="profile-header">
-          <label style="font-size: 10px; color: #bdc3c7">MY NICKNAME</label>
+          <div
+            id="my-friend-id"
+            style="
+              font-size: 18px;
+              color: #f1c40f;
+              font-weight: bold;
+              margin-bottom: 10px;
+              letter-spacing: 2px;
+            "
+          >
+            ID: ...
+          </div>
+
+          <label style="font-size: 10px; color: #bdc3c7">Visible Name</label>
           <div style="display: flex; justify-content: center; gap: 5px">
             <input
               type="text"
@@ -475,6 +488,72 @@
         <div id="fd-actions" style="margin-top: 15px"></div>
       </div>
     </div>
+
+    <div
+      id="invite-popup"
+      class="hidden"
+      style="
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2ecc71;
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: slideDown 0.5s;
+      "
+    >
+      <div>
+        <div style="font-weight: bold; font-size: 14px">GAME INVITE!</div>
+        <div id="invite-msg" style="font-size: 12px">Player invited you.</div>
+      </div>
+      <div style="display: flex; gap: 5px">
+        <button
+          id="btn-accept-invite"
+          class="btn"
+          style="
+            background: white;
+            color: #2ecc71;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+          "
+        >
+          JOIN
+        </button>
+        <button
+          onclick="
+            document.getElementById('invite-popup').classList.add('hidden')
+          "
+          class="btn"
+          style="
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+          "
+        >
+          X
+        </button>
+      </div>
+    </div>
+
+    <style>
+      @keyframes slideDown {
+        from {
+          top: -100px;
+        }
+        to {
+          top: 20px;
+        }
+      }
+    </style>
 
     <script type="module" src="js/firebase-bridge.js"></script>
     <script src="js/config.js"></script>

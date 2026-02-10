@@ -28,3 +28,31 @@ window.addEventListener("load", () => {
     },
   );
 });
+// Global: Davet Popup Göster
+window.showInvitePopup = (invite, inviteKey) => {
+  const popup = document.getElementById("invite-popup");
+  const msg = document.getElementById("invite-msg");
+  const btn = document.getElementById("btn-accept-invite");
+
+  msg.textContent = `${invite.fromName} invited you to a game!`;
+  popup.classList.remove("hidden");
+
+  // Ses çal (Opsiyonel)
+  // const audio = new Audio('notify.mp3'); audio.play();
+
+  btn.onclick = async () => {
+    btn.textContent = "Joining...";
+    // Odaya gir
+    document.getElementById("room-code-input").value = invite.roomId;
+    await window.joinRoom();
+
+    // Daveti sil ve popup'ı kapat
+    popup.classList.add("hidden");
+    window.Network.removeInvite(inviteKey);
+  };
+
+  // 10 saniye sonra otomatik kapan
+  setTimeout(() => {
+    popup.classList.add("hidden");
+  }, 10000);
+};
