@@ -674,3 +674,20 @@ input:checked + .slider:before {
   border-color: #95a5a6;
   color: #bdc3c7;
 }
+/* --- IPHONE EMOJI RENK DÜZELTMESİ --- */
+/* Emojileri zorla siyah-beyaz yapar, böylece "White/Black" ayrımı anlaşılır */
+.log-item,
+.l-status,
+.badge-icon,
+#voice-indicator {
+  /* Emojileri gri tonlamalı yap */
+  filter: grayscale(100%);
+}
+
+/* Aktif mikrofon ve Ready tikleri renkli olsun */
+#voice-indicator.active,
+.tag-ready {
+  filter: none !important;
+}
+
+/* SVG sınıflarını sildik, gerek kalmadı */

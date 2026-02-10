@@ -20,7 +20,7 @@ window.state = {
   errorSquare: null,
   isReady: false,
   nickname: "Player",
-  isVsComputer: false, // Varsayılan False
+  isVsComputer: false,
   timers: {
     white: CONFIG.GAME.TIME_LIMIT_SECONDS,
     black: CONFIG.GAME.TIME_LIMIT_SECONDS,
@@ -28,8 +28,26 @@ window.state = {
   interval: null,
 };
 
+// --- EMOJİ İKONLAR ---
+const ICONS = {
+  CHECK: "✅",
+  CROSS: "❌",
+  WAIT: "⏳",
+};
+
+// --- LOG FONKSİYONU ---
+window.addLogEntry = (msg) => {
+  const list = document.getElementById("log-list");
+  const div = document.createElement("div");
+  div.className = "log-item";
+  div.textContent = msg;
+  list.appendChild(div);
+  list.scrollTop = list.scrollHeight;
+};
+
+// --- OYUNU BAŞLAT (UI) ---
 window.startGameUI = (roomId) => {
-  // 1. Ekran Geçişleri
+  // 1. Ekran Yönetimi
   document.getElementById("auth-screen").classList.add("hidden");
   document.getElementById("lobby-screen").classList.add("hidden");
 
@@ -40,11 +58,11 @@ window.startGameUI = (roomId) => {
   document.getElementById("log-container").classList.remove("hidden");
   document.getElementById("chat-container").classList.remove("hidden");
 
-  // 2. İçerik Temizliği
+  // 2. Temizlik
   document.getElementById("log-list").innerHTML = "";
   document.getElementById("display-room-id").textContent = roomId;
 
-  // Profil ismini al
+  // Profil
   window.Network.getUserProfile().then((p) => {
     const name = p && p.nickname ? p.nickname : "Player";
     const badge = document.getElementById("badge-nickname-game");
@@ -56,30 +74,29 @@ window.startGameUI = (roomId) => {
 
   // --- BOT MU ONLINE MI? ---
   if (window.state.isVsComputer) {
-    console.log("Bot Modu Başlatılıyor...");
+    console.log("Bot Modu Aktif.");
 
-    // 1. Lobi/Bekleme Ekranını ZORLA GİZLE
+    // Lobiyi Gizle
     const overlay = document.getElementById("lobby-waiting-overlay");
     if (overlay) overlay.classList.add("hidden");
 
-    // 2. Oyunu Başlat
+    // Mini Ready Gizle
+    const miniReady = document.getElementById("ready-overlay");
+    if (miniReady) miniReady.classList.add("hidden");
+
+    // Direkt Başlat
     window.state.gameStarted = true;
     window.state.turn = "white";
     window.updateStatusText();
-
-    // 3. Süreyi Başlat
     startTimer();
   } else {
-    // ONLINE MOD
-    console.log("Online Mod Başlatılıyor...");
+    // Online Mod
+    console.log("Online Mod Aktif.");
 
-    // Lobi Ekranını GÖSTER
     const overlay = document.getElementById("lobby-waiting-overlay");
     if (overlay) overlay.classList.remove("hidden");
 
-    // Chat ve Dinleyicileri Başlat
     window.Network.listenForChat(roomId, window.renderChatMessages);
-
     const myVoiceId = `${roomId}_${window.state.myColor}`;
     window.Voice.init(myVoiceId).then(() =>
       window.Network.savePeerId(roomId, window.state.myColor, myVoiceId),
@@ -99,18 +116,15 @@ window.leaveRoom = async () => {
 window.toggleReadyState = () => {
   if (window.state.isVsComputer) return;
 
-  // Yeni checkbox'ı bul
   const chk = document.getElementById("chk-ready-big");
   window.state.isReady = chk ? chk.checked : !window.state.isReady;
 
-  // Yazıyı Güncelle
   const txt = document.getElementById("ready-text-big");
   if (txt) {
     txt.textContent = window.state.isReady ? "I'M READY!" : "ARE YOU READY?";
     txt.style.color = window.state.isReady ? "#2ecc71" : "#bdc3c7";
   }
 
-  // Sunucuya bildir
   window.Network.setReady(
     window.state.roomId,
     window.state.myColor,
@@ -118,75 +132,62 @@ window.toggleReadyState = () => {
   );
 };
 
-// --- INIT GAME (ARTIK SAF - LISTEN GAME YOK) ---
 function initGame() {
   window.state.pieces = CONFIG.INITIAL_SETUP.map(
     (d) => new Piece(d.t, d.c, d.x, d.y),
   );
-  // BURADAN window.Network.listenGame KALDIRILDI!
   gameLoop();
 }
 
+// --- SUNUCU GÜNCELLEMELERİ ---
 let lastProcessedMove = null;
-// --- SVG İKONLAR (IOS UYUMLU) ---
-const ICONS = {
-  CHECK: `<svg class="svg-icon" style="color:#2ecc71"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`, // TİK
-  CROSS: `<svg class="svg-icon" style="color:#e74c3c"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`, // ÇARPI
-  WAIT: `<svg class="svg-icon" style="color:#f1c40f"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v6zm0-8h-2V7h2v2z"/></svg>`, // SAAT
-};
-
 function handleServerUpdate(data) {
   if (!data) return;
 
-  // --- LOBİ GÜNCELLEMESİ (İSİMLER & İKONLAR) ---
+  // Lobi Güncellemesi
   const pWhite = document.getElementById("lobby-p-white");
   const sWhite = document.getElementById("lobby-s-white");
   const pBlack = document.getElementById("lobby-p-black");
   const sBlack = document.getElementById("lobby-s-black");
 
-  // Beyaz Oyuncu
   if (data.playerWhite) {
     pWhite.textContent = data.whiteName || "Player 1";
-    sWhite.innerHTML = data.readyWhite ? ICONS.CHECK : ICONS.CROSS;
+    sWhite.textContent = data.readyWhite ? ICONS.CHECK : ICONS.CROSS;
   } else {
     pWhite.textContent = "Waiting...";
-    sWhite.innerHTML = ICONS.WAIT;
+    sWhite.textContent = ICONS.WAIT;
   }
 
-  // Siyah Oyuncu
   if (data.playerBlack) {
     pBlack.textContent = data.blackName || "Player 2";
-    sBlack.innerHTML = data.readyBlack ? ICONS.CHECK : ICONS.CROSS;
+    sBlack.textContent = data.readyBlack ? ICONS.CHECK : ICONS.CROSS;
   } else {
     pBlack.textContent = "Waiting...";
-    sBlack.innerHTML = ICONS.WAIT;
+    sBlack.textContent = ICONS.WAIT;
   }
 
-  // --- MİNİ STATUS BAR (NOKTALAR) ---
+  // Mini Noktalar
   const dotWhite = document.getElementById("status-white");
   const dotBlack = document.getElementById("status-black");
+  if (dotWhite)
+    dotWhite.style.background = data.readyWhite
+      ? "#2ecc71"
+      : data.playerWhite
+        ? "#f1c40f"
+        : "#7f8c8d";
+  if (dotBlack)
+    dotBlack.style.background = data.readyBlack
+      ? "#2ecc71"
+      : data.playerBlack
+        ? "#f1c40f"
+        : "#7f8c8d";
 
-  if (dotWhite) {
-    if (data.readyWhite) dotWhite.style.background = "#2ecc71";
-    else if (data.playerWhite) dotWhite.style.background = "#f1c40f";
-    else dotWhite.style.background = "#7f8c8d";
-  }
-  if (dotBlack) {
-    if (data.readyBlack) dotBlack.style.background = "#2ecc71";
-    else if (data.playerBlack) dotBlack.style.background = "#f1c40f";
-    else dotBlack.style.background = "#7f8c8d";
-  }
-
-  // --- OYUN BAŞLAMA ---
+  // Oyun Başlatma
   if (data.status === "playing") {
     if (!window.state.gameStarted) {
       window.state.gameStarted = true;
-      // Lobiyi Gizle
       document.getElementById("lobby-waiting-overlay").classList.add("hidden");
-      // Varsa mini ready butonunu da gizle
-      const miniReady = document.getElementById("ready-overlay");
-      if (miniReady) miniReady.classList.add("hidden");
-
+      document.getElementById("ready-overlay").classList.add("hidden");
       startTimer();
     }
   } else if (
@@ -198,15 +199,14 @@ function handleServerUpdate(data) {
     window.Network.startGame(window.state.roomId);
   }
 
-  // Ses
+  // Ses Bağlantısı
   if (window.state.myColor === "white" && data.peerBlack && !window.Voice.call)
     window.Voice.connectToPeer(data.peerBlack);
 
-  // Oyun Durumu
   window.state.turn = data.turn;
   window.updateStatusText();
 
-  // Hareket İşleme
+  // Hareket İşleme (Online Log Dahil)
   if (
     data.lastMove &&
     JSON.stringify(data.lastMove) !== JSON.stringify(lastProcessedMove)
@@ -216,39 +216,53 @@ function handleServerUpdate(data) {
       (p) => p.x === move.from.x && p.y === move.from.y,
     );
     if (piece) {
+      const pieceType = piece.type;
       const targetIndex = window.state.pieces.findIndex(
         (p) => p.x === move.to.x && p.y === move.to.y,
       );
-      if (targetIndex !== -1) window.state.pieces.splice(targetIndex, 1);
+      let captureText = "";
+
+      if (targetIndex !== -1) {
+        captureText = "x";
+        window.state.pieces.splice(targetIndex, 1);
+      }
       piece.x = move.to.x;
       piece.y = move.to.y;
+
       const newType = GameLogic.checkPromotion(piece);
       if (newType) piece.type = newType;
+
+      // ONLINE LOG EKLEME
+      const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+      const fromStr = `${cols[move.from.x]}${10 - move.from.y}`;
+      const toStr = `${cols[move.to.x]}${10 - move.to.y}`;
+      const logMsg = `${pieceType.toUpperCase().substring(0, 2)} ${fromStr} > ${toStr} ${captureText}`;
+      window.addLogEntry(logMsg);
     }
     lastProcessedMove = data.lastMove;
     checkGameState();
   }
 }
+
 window.updateStatusText = () => {
   const statusDiv = document.getElementById("status");
+  if (!statusDiv) return;
 
   if (window.state.isVsComputer) {
-    // BOT MODU
     if (window.state.turn === window.state.myColor) {
-      statusDiv.textContent = "YOUR TURN (WHITE)";
-      statusDiv.style.background = "#27ae60"; // Yeşil
+      statusDiv.textContent = "YOUR TURN";
+      statusDiv.style.background = "rgba(46, 204, 113, 0.2)";
     } else {
-      statusDiv.textContent = "COMPUTER IS THINKING...";
-      statusDiv.style.background = "#e67e22"; // Turuncu
+      statusDiv.textContent = "THINKING...";
+      statusDiv.style.background = "rgba(230, 126, 34, 0.5)";
     }
   } else {
-    // ONLINE MOD
     statusDiv.textContent =
-      window.state.turn === window.state.myColor
-        ? "YOUR TURN"
-        : "OPPONENT'S TURN";
+      window.state.turn === window.state.myColor ? "YOUR TURN" : "OPPONENT";
     statusDiv.style.background =
-      window.state.turn === window.state.myColor ? "#27ae60" : "#c0392b";
+      window.state.turn === window.state.myColor
+        ? "rgba(46, 204, 113, 0.2)"
+        : "rgba(192, 57, 43, 0.2)";
   }
 };
 
@@ -263,10 +277,13 @@ function startTimer() {
       endGame(window.state.turn === "white" ? "black" : "white", "Time Up");
   }, 1000);
 }
+
 function formatTime(id, s) {
-  document.getElementById(id).textContent = `${Math.floor(s / 60)
-    .toString()
-    .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  const el = document.getElementById(id);
+  if (el)
+    el.textContent = `${Math.floor(s / 60)
+      .toString()
+      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 }
 
 window.executeMove = (move) => {
@@ -277,12 +294,12 @@ window.executeMove = (move) => {
   const targetIdx = window.state.pieces.findIndex(
     (p) => p.x === move.x && p.y === move.y,
   );
-
   let captureText = "";
+
   if (targetIdx !== -1) {
     const capturedPiece = window.state.pieces[targetIdx];
     window.state.pieces.splice(targetIdx, 1);
-    captureText = ` captured ${capturedPiece.type}`;
+    captureText = "x";
   }
 
   const pieceType = window.state.selectedPiece.type;
@@ -295,13 +312,20 @@ window.executeMove = (move) => {
   window.state.selectedPiece = null;
   window.state.legalMoves = [];
 
-  // SEND MOVE (ONLINE OR BOT)
+  // --- HAMLE LOGU HAZIRLA ---
+  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+  const fromStr = `${cols[from.x]}${10 - from.y}`;
+  const toStr = `${cols[move.x]}${10 - move.y}`;
+  const logMsg = `${pieceType.toUpperCase().substring(0, 2)} ${fromStr} > ${toStr} ${captureText}`;
+
   if (window.state.isVsComputer) {
-    // Botta sıra manuel değişir
+    // BOT MODU: Elle Log Ekle
+    window.addLogEntry(logMsg);
+
     window.state.turn = window.state.turn === "white" ? "black" : "white";
     window.updateStatusText();
   } else {
-    // Online'da sunucuya gider
+    // ONLINE MOD: Sunucuya Gönder (Log handleServerUpdate ile gelecek)
     window.Network.sendMove(
       window.state.roomId,
       { from, to: move },
@@ -309,25 +333,14 @@ window.executeMove = (move) => {
     );
   }
 
-  // LOGLAMA
-  const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
-  const fromStr = `${cols[from.x] || "?"}${10 - from.y}`;
-  const toStr = `${cols[move.x] || "?"}${10 - move.y}`;
-  window.Network.sendChatMessage(
-    window.state.roomId,
-    `[GAME] ${pieceType.toUpperCase()} ${fromStr} -> ${toStr}${captureText}`,
-    "SYSTEM",
-  );
-
   checkGameState();
 
-  // BOT TETİKLEME
   if (
     window.state.isVsComputer &&
     !window.state.gameOver &&
     window.state.turn === "black"
   ) {
-    setTimeout(() => window.Bot.playTurn("black"), 500); // 500ms gecikme ile çağır
+    setTimeout(() => window.Bot.playTurn("black"), 500);
   }
 };
 
@@ -345,12 +358,14 @@ function checkGameState() {
 function endGame(winner, reason) {
   window.state.gameOver = true;
   clearInterval(window.state.interval);
-  if (window.state.gameStarted)
+  if (window.state.gameStarted && !window.state.isVsComputer)
     window.Network.recordGameResult(
       winner === window.state.myColor,
       "Online Opponent",
     );
-  statusDiv.textContent = `GAME OVER: ${reason}`;
+
+  if (statusDiv)
+    statusDiv.textContent = `${reason} - ${winner.toUpperCase()} WINS!`;
 }
 
 function gameLoop() {
