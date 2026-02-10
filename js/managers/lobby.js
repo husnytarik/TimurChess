@@ -48,17 +48,23 @@ window.joinRoom = async () => {
 window.startBotGame = () => {
   const diff = document.getElementById("bot-difficulty").value;
 
-  // 1. Oyun Durumunu Ayarla
+  // Oyun Durumunu Ayarla
   window.state.isVsComputer = true;
-  window.state.myColor = "white"; // Bot oyununda oyuncu hep beyaz başlar
+  window.state.myColor = "white";
   window.state.roomId = "BOT-MATCH";
-  window.state.gameStarted = true; // Oyunu direkt başladı say
+  window.state.gameStarted = true;
   window.state.isReady = true;
 
-  // 2. Botu Hazırla
-  if (window.Bot) window.Bot.init(diff);
+  // Botu Başlat (Artık bot.js var olduğu için hata vermeyecek)
+  if (window.Bot && window.Bot.init) {
+    window.Bot.init(diff);
+  } else {
+    console.error("Bot module not loaded!");
+    alert("Bot yüklenemedi, sayfayı yenileyin.");
+    return;
+  }
 
-  // 3. Arayüzü Başlat
+  // Arayüzü Başlat
   window.startGameUI("Bot Game");
 };
 

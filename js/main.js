@@ -24,7 +24,9 @@ window.addEventListener("load", () => {
       document.getElementById("lobby-screen").classList.add("hidden");
       document.getElementById("game-container").classList.add("hidden");
       document.getElementById("ui-panel").classList.add("hidden");
-      document.getElementById("room-info").classList.add("hidden");
+
+      // HATA VEREN SATIR BURASIYDI, KALDIRILDI:
+      // document.getElementById("room-info").classList.add("hidden");
     },
   );
 });
