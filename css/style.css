@@ -1,4 +1,3 @@
-/* --- TEMEL AYARLAR --- */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -20,16 +19,6 @@ body {
   display: none !important;
 }
 
-/* --- SVG İKONLARI İÇİN ORTAK SINIF --- */
-.svg-icon {
-  width: 1.2em;
-  height: 1.2em;
-  fill: currentColor; /* Yazı rengini (color) alır */
-  vertical-align: middle;
-  display: inline-block;
-}
-
-/* --- BUTONLAR & INPUTLAR --- */
 .btn {
   padding: 12px 20px;
   font-size: 16px;
@@ -82,7 +71,6 @@ body {
   font-weight: bold;
 }
 
-/* --- EKRANLAR (LOGIN & LOBBY) --- */
 #auth-screen,
 #lobby-screen {
   position: fixed;
@@ -133,7 +121,6 @@ body {
   gap: 10px;
 }
 
-/* --- MODALLER --- */
 .modal {
   position: fixed;
   top: 0;
@@ -167,7 +154,6 @@ body {
   color: #bdc3c7;
 }
 
-/* Profil */
 .profile-tabs {
   display: flex;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -219,7 +205,6 @@ body {
   color: #f1c40f;
 }
 
-/* Listeler */
 .scroll-list {
   max-height: 200px;
   overflow-y: auto;
@@ -250,7 +235,6 @@ body {
   font-size: 14px;
 }
 
-/* --- HEADER BAR (SADE) --- */
 #game-header-bar {
   flex: 0 0 50px;
   width: 100%;
@@ -296,7 +280,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* --- ORTA ALAN --- */
 #middle-area {
   flex: 1;
   display: flex;
@@ -316,7 +299,6 @@ body {
   margin: 0;
 }
 
-/* UI Panel (Kompakt) */
 #ui-panel.compact-ui {
   display: flex;
   align-items: center;
@@ -393,62 +375,29 @@ body {
   align-items: center;
   justify-content: center;
   padding: 6px;
+  font-size: 14px;
 }
 .btn-exit {
   background: #c0392b;
   border-color: #e74c3c;
 }
+
+#voice-indicator {
+  background: rgba(192, 57, 43, 0.2);
+  border: 1px solid #c0392b;
+  color: #e74c3c;
+  transition: all 0.2s;
+}
+#voice-indicator:hover {
+  background: rgba(192, 57, 43, 0.4);
+}
 #voice-indicator.active {
-  background: #2ecc71;
+  background: rgba(46, 204, 113, 0.2);
   border-color: #27ae60;
+  color: #2ecc71;
+  box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
 }
 
-/* Küçük Switch */
-.ready-compact {
-  display: flex;
-  align-items: center;
-}
-.switch-tiny {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-}
-.switch-tiny input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider-tiny {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #95a5a6;
-  transition: 0.4s;
-  border-radius: 34px;
-}
-.slider-tiny:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-input:checked + .slider-tiny {
-  background-color: #2ecc71;
-}
-input:checked + .slider-tiny:before {
-  transform: translateX(16px);
-}
-
-/* --- GAME CONTAINER & LOBBY OVERLAY --- */
 #game-container {
   width: min(95vw, 55dvh);
   height: min(95vw, 55dvh);
@@ -502,18 +451,13 @@ canvas {
   margin-bottom: 5px;
 }
 .l-status {
-  font-size: 16px;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-}
-.l-status svg {
-  width: 20px;
-  height: 20px;
+  height: 30px;
 }
 
-/* Büyük Switch (Lobi İçin) - İKONSUZ CSS TİK */
 .lobby-controls {
   margin-top: 20px;
   display: flex;
@@ -561,7 +505,6 @@ input:checked + .slider:before {
   transform: translateX(24px);
 }
 
-/* --- LOG & CHAT --- */
 #log-container {
   height: 80px;
   flex-shrink: 0;
@@ -632,63 +575,3 @@ input:checked + .slider:before {
   font-size: 20px;
   padding: 0 15px;
 }
-/* --- SES BUTONU DÜZELTMESİ --- */
-#voice-indicator {
-  width: 32px;
-  height: 32px;
-  /* Varsayılan: KAPALI (Kırmızı) */
-  background: rgba(192, 57, 43, 0.2);
-  border: 1px solid #c0392b;
-  color: #e74c3c; /* İkon rengi */
-
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  transition: all 0.2s;
-}
-
-#voice-indicator:hover {
-  background: rgba(192, 57, 43, 0.4);
-}
-
-/* AKTİF HALİ: AÇIK (Yeşil) */
-#voice-indicator.active {
-  background: rgba(46, 204, 113, 0.2);
-  border-color: #27ae60;
-  color: #2ecc71; /* İkon rengi */
-  box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
-}
-
-#voice-indicator.active:hover {
-  background: rgba(46, 204, 113, 0.4);
-}
-
-/* Devre Dışı (Stream yoksa) */
-#voice-indicator:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #7f8c8d;
-  border-color: #95a5a6;
-  color: #bdc3c7;
-}
-/* --- IPHONE EMOJI RENK DÜZELTMESİ --- */
-/* Emojileri zorla siyah-beyaz yapar, böylece "White/Black" ayrımı anlaşılır */
-.log-item,
-.l-status,
-.badge-icon,
-#voice-indicator {
-  /* Emojileri gri tonlamalı yap */
-  filter: grayscale(100%);
-}
-
-/* Aktif mikrofon ve Ready tikleri renkli olsun */
-#voice-indicator.active,
-.tag-ready {
-  filter: none !important;
-}
-
-/* SVG sınıflarını sildik, gerek kalmadı */
-  

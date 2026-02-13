@@ -1,4 +1,3 @@
-// --- GLOBAL STATE ---
 const canvas = document.getElementById("gameCanvas");
 canvas.width =
   CONFIG.BOARD.COLS * CONFIG.BOARD.TILE_SIZE + CONFIG.BOARD.OFFSET_X * 2;
@@ -28,14 +27,12 @@ window.state = {
   interval: null,
 };
 
-// --- EMOJİ İKONLAR ---
 const ICONS = {
-  CHECK: "✅",
-  CROSS: "❌",
-  WAIT: "⏳",
+  CHECK: '<i class="fa-solid fa-check" style="color:#2ecc71;"></i>',
+  CROSS: '<i class="fa-solid fa-xmark" style="color:#e74c3c;"></i>',
+  WAIT: '<i class="fa-solid fa-hourglass-half" style="color:#f1c40f;"></i>',
 };
 
-// --- LOG FONKSİYONU ---
 window.addLogEntry = (msg) => {
   const list = document.getElementById("log-list");
   const div = document.createElement("div");
@@ -45,9 +42,7 @@ window.addLogEntry = (msg) => {
   list.scrollTop = list.scrollHeight;
 };
 
-// --- OYUNU BAŞLAT (UI) ---
 window.startGameUI = (roomId) => {
-  // 1. Ekran Yönetimi
   document.getElementById("auth-screen").classList.add("hidden");
   document.getElementById("lobby-screen").classList.add("hidden");
 
@@ -58,41 +53,29 @@ window.startGameUI = (roomId) => {
   document.getElementById("log-container").classList.remove("hidden");
   document.getElementById("chat-container").classList.remove("hidden");
 
-  // 2. Temizlik
   document.getElementById("log-list").innerHTML = "";
   document.getElementById("display-room-id").textContent = roomId;
 
-  // Profil
   window.Network.getUserProfile().then((p) => {
     const name = p && p.nickname ? p.nickname : "Player";
     const badge = document.getElementById("badge-nickname-game");
     if (badge) badge.textContent = name;
   });
 
-  // Tahtayı Kur
   initGame();
 
-  // --- BOT MU ONLINE MI? ---
   if (window.state.isVsComputer) {
-    console.log("Bot Modu Aktif.");
-
-    // Lobiyi Gizle
     const overlay = document.getElementById("lobby-waiting-overlay");
     if (overlay) overlay.classList.add("hidden");
 
-    // Mini Ready Gizle
     const miniReady = document.getElementById("ready-overlay");
     if (miniReady) miniReady.classList.add("hidden");
 
-    // Direkt Başlat
     window.state.gameStarted = true;
     window.state.turn = "white";
     window.updateStatusText();
     startTimer();
   } else {
-    // Online Mod
-    console.log("Online Mod Aktif.");
-
     const overlay = document.getElementById("lobby-waiting-overlay");
     if (overlay) overlay.classList.remove("hidden");
 
@@ -139,12 +122,10 @@ function initGame() {
   gameLoop();
 }
 
-// --- SUNUCU GÜNCELLEMELERİ ---
 let lastProcessedMove = null;
 function handleServerUpdate(data) {
   if (!data) return;
 
-  // Lobi Güncellemesi
   const pWhite = document.getElementById("lobby-p-white");
   const sWhite = document.getElementById("lobby-s-white");
   const pBlack = document.getElementById("lobby-p-black");
@@ -152,21 +133,20 @@ function handleServerUpdate(data) {
 
   if (data.playerWhite) {
     pWhite.textContent = data.whiteName || "Player 1";
-    sWhite.textContent = data.readyWhite ? ICONS.CHECK : ICONS.CROSS;
+    sWhite.innerHTML = data.readyWhite ? ICONS.CHECK : ICONS.CROSS;
   } else {
     pWhite.textContent = "Waiting...";
-    sWhite.textContent = ICONS.WAIT;
+    sWhite.innerHTML = ICONS.WAIT;
   }
 
   if (data.playerBlack) {
     pBlack.textContent = data.blackName || "Player 2";
-    sBlack.textContent = data.readyBlack ? ICONS.CHECK : ICONS.CROSS;
+    sBlack.innerHTML = data.readyBlack ? ICONS.CHECK : ICONS.CROSS;
   } else {
     pBlack.textContent = "Waiting...";
-    sBlack.textContent = ICONS.WAIT;
+    sBlack.innerHTML = ICONS.WAIT;
   }
 
-  // Mini Noktalar
   const dotWhite = document.getElementById("status-white");
   const dotBlack = document.getElementById("status-black");
   if (dotWhite)
@@ -182,7 +162,6 @@ function handleServerUpdate(data) {
         ? "#f1c40f"
         : "#7f8c8d";
 
-  // Oyun Başlatma
   if (data.status === "playing") {
     if (!window.state.gameStarted) {
       window.state.gameStarted = true;
@@ -199,14 +178,12 @@ function handleServerUpdate(data) {
     window.Network.startGame(window.state.roomId);
   }
 
-  // Ses Bağlantısı
   if (window.state.myColor === "white" && data.peerBlack && !window.Voice.call)
     window.Voice.connectToPeer(data.peerBlack);
 
   window.state.turn = data.turn;
   window.updateStatusText();
 
-  // Hareket İşleme (Online Log Dahil)
   if (
     data.lastMove &&
     JSON.stringify(data.lastMove) !== JSON.stringify(lastProcessedMove)
@@ -232,7 +209,6 @@ function handleServerUpdate(data) {
       const newType = GameLogic.checkPromotion(piece);
       if (newType) piece.type = newType;
 
-      // ONLINE LOG EKLEME
       const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
       const fromStr = `${cols[move.from.x]}${10 - move.from.y}`;
       const toStr = `${cols[move.to.x]}${10 - move.to.y}`;
@@ -312,20 +288,16 @@ window.executeMove = (move) => {
   window.state.selectedPiece = null;
   window.state.legalMoves = [];
 
-  // --- HAMLE LOGU HAZIRLA ---
   const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
   const fromStr = `${cols[from.x]}${10 - from.y}`;
   const toStr = `${cols[move.x]}${10 - move.y}`;
   const logMsg = `${pieceType.toUpperCase().substring(0, 2)} ${fromStr} > ${toStr} ${captureText}`;
 
   if (window.state.isVsComputer) {
-    // BOT MODU: Elle Log Ekle
     window.addLogEntry(logMsg);
-
     window.state.turn = window.state.turn === "white" ? "black" : "white";
     window.updateStatusText();
   } else {
-    // ONLINE MOD: Sunucuya Gönder (Log handleServerUpdate ile gelecek)
     window.Network.sendMove(
       window.state.roomId,
       { from, to: move },

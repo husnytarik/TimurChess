@@ -1,18 +1,15 @@
-// --- PROFİL VE ARKADAŞ YÖNETİMİ ---
-
 window.openProfile = async () => {
   const modal = document.getElementById("profile-modal");
   if (!modal) return;
   modal.classList.remove("hidden");
 
-  // Profil bilgilerini yükle
   try {
     const p = await window.Network.getUserProfile();
     if (p) {
       document.getElementById("my-nickname-input").value = p.nickname || "";
-      // ID'yi göster
       const idLabel = document.getElementById("my-friend-id");
-      if (idLabel) idLabel.textContent = `ID: ${p.friendId || "..."}`;
+      // FriendID yoksa (eski hesapsa), sayfayı yenileyince initAuth oluşturacak.
+      if (idLabel) idLabel.textContent = `ID: ${p.friendId || "Reload Page"}`;
     }
   } catch (e) {
     console.error(e);
@@ -53,29 +50,27 @@ window.saveNickname = async () => {
   alert("Saved!");
 };
 
-// --- ARKADAŞ EKLEME (ID veya Email ile) ---
 window.sendFriendRequestUI = async () => {
   const input = document.getElementById("friend-email-input");
   const msgDiv = document.getElementById("friend-req-msg");
-  const val = input.value.trim(); // Artık büyük/küçük harf duyarlı olabilir (ID için)
+  const val = input.value.trim();
 
   msgDiv.textContent = "";
   if (!val) {
-    msgDiv.textContent = "Enter Email or Friend ID";
+    msgDiv.textContent = "Enter ID or Email";
     msgDiv.style.color = "#e74c3c";
     return;
   }
 
   msgDiv.textContent = "Sending...";
   try {
-    // ID veya Email ile gönder
     const result = await window.Network.sendFriendRequest(val);
     if (result.success) {
       msgDiv.textContent = "Request Sent!";
       msgDiv.style.color = "#2ecc71";
       input.value = "";
     } else {
-      msgDiv.textContent = result.error || "User not found.";
+      msgDiv.textContent = result.error || "Not found.";
       msgDiv.style.color = "#e74c3c";
     }
   } catch (err) {
@@ -106,24 +101,19 @@ window.loadFriends = async () => {
         "<span style='color:#95a5a6; font-size:11px;'>Offline</span>";
       let inviteBtnHtml = "";
 
-      if (f.status && f.status.state !== "offline") {
+      if (f.status) {
         const color =
           f.status.state === "playing"
             ? "#e74c3c"
             : f.status.state === "online"
               ? "#2ecc71"
               : "#f1c40f";
-        statusHtml = `<span style='color:${color}; font-size:11px; font-weight:bold;'>${f.status.state.toUpperCase()}</span>`;
+        statusHtml = `<span style='color:${color}; font-size:11px; font-weight:bold;'>${f.status.state ? f.status.state.toUpperCase() : "UNKNOWN"}</span>`;
+      }
 
-        // Eğer BİZ bir odadaysak ve arkadaş BOŞTAYSA -> Davet Butonu Göster
-        if (
-          window.state &&
-          window.state.roomId &&
-          !window.state.isVsComputer &&
-          f.status.state !== "playing"
-        ) {
-          inviteBtnHtml = `<button class="btn-success" style="padding:4px 8px; font-size:10px;" onclick="window.inviteUser('${f.uid}')">INVITE</button>`;
-        }
+      // Davet Butonu (Eğer bir odadaysak HER ZAMAN göster)
+      if (window.state && window.state.roomId && !window.state.isVsComputer) {
+        inviteBtnHtml = `<button class="btn-success" style="padding:4px 8px; font-size:10px;" onclick="window.inviteUser('${f.uid}')">INVITE</button>`;
       }
 
       item.innerHTML = `
@@ -136,9 +126,7 @@ window.loadFriends = async () => {
                     <div onclick="window.openFriendDetail('${f.uid}')" style="color:#7f8c8d; font-size:18px; cursor:pointer;">›</div>
                 </div>
             `;
-
-      // openFriendDetail için global erişim sağlamak adına f objesini saklayabiliriz veya tekrar çekeriz.
-      // Basitlik için değişkene atayalım:
+      // Modal için f'i sakla
       item.onclick = (e) => {
         if (e.target.tagName !== "BUTTON") window.openFriendDetailModal(f);
       };
@@ -151,18 +139,25 @@ window.loadFriends = async () => {
   }
 };
 
-// Direkt davet fonksiyonu
 window.inviteUser = async (uid) => {
   if (!window.state.roomId) return;
   const btn = event.target;
+  const originalText = btn.textContent;
   btn.textContent = "...";
   btn.disabled = true;
-  await window.Network.sendInvite(uid, window.state.roomId);
-  btn.textContent = "SENT";
-  btn.style.background = "#7f8c8d";
+  try {
+    await window.Network.sendInvite(uid, window.state.roomId);
+    btn.textContent = "SENT";
+    btn.style.background = "#7f8c8d";
+  } catch (e) {
+    btn.textContent = "FAIL";
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+  }
 };
 
-// ... (loadRequests, respondToRequestUI, loadHistory aynı kalabilir) ...
 window.loadRequests = async () => {
   const list = document.getElementById("requests-list");
   list.innerHTML = "Loading...";
@@ -182,8 +177,8 @@ window.loadRequests = async () => {
     item.innerHTML = `
             <span style="font-size:13px;">${req.nickname}</span>
             <div>
-                <button class="btn-icon-small" style="background:#2ecc71; border:none; margin-right:5px;" onclick="window.respondToRequestUI('${req.uid}', true)">✔</button>
-                <button class="btn-icon-small" style="background:#e74c3c; border:none;" onclick="window.respondToRequestUI('${req.uid}', false)">✖</button>
+                <button class="btn-icon-small" style="background:#2ecc71; border:none; margin-right:5px;" onclick="window.respondToRequestUI('${req.uid}', true)"><i class="fa-solid fa-check"></i></button>
+                <button class="btn-icon-small" style="background:#e74c3c; border:none;" onclick="window.respondToRequestUI('${req.uid}', false)"><i class="fa-solid fa-xmark"></i></button>
             </div>`;
     list.appendChild(item);
   });
@@ -225,27 +220,25 @@ window.openFriendDetailModal = (f) => {
   const modal = document.getElementById("friend-detail-modal");
   modal.classList.remove("hidden");
   document.getElementById("fd-nickname").textContent = f.nickname;
-  document.getElementById("fd-email").textContent = `#${f.friendId || "..."}`; // Email yerine ID gösteriyoruz güvenlik için
+  document.getElementById("fd-email").textContent = `#${f.friendId || "..."}`;
   document.getElementById("fd-wins").textContent = f.wins || 0;
   document.getElementById("fd-losses").textContent = f.losses || 0;
   document.getElementById("fd-score").textContent = f.score || 1000;
   const statusDiv = document.getElementById("fd-status");
-  if (f.status && f.status.state !== "offline") {
-    const color = f.status.state === "playing" ? "#e74c3c" : "#2ecc71";
-    statusDiv.innerHTML = `Currently: <b style="color:${color}">${f.status.state.toUpperCase()}</b>`;
+  if (f.status) {
+    const color =
+      f.status.state === "playing"
+        ? "#e74c3c"
+        : f.status.state === "online"
+          ? "#2ecc71"
+          : "#f1c40f";
+    statusDiv.innerHTML = `Currently: <b style="color:${color}">${f.status.state ? f.status.state.toUpperCase() : "UNKNOWN"}</b>`;
   } else
     statusDiv.innerHTML = `Currently: <b style="color:#95a5a6">OFFLINE</b>`;
 
-  // Detay penceresindeki invite butonu
   const actionsDiv = document.getElementById("fd-actions");
   actionsDiv.innerHTML = "";
-  if (
-    window.state &&
-    window.state.roomId &&
-    !window.state.isVsComputer &&
-    f.status &&
-    f.status.state !== "offline"
-  ) {
+  if (window.state && window.state.roomId && !window.state.isVsComputer) {
     const btn = document.createElement("button");
     btn.className = "btn btn-primary";
     btn.style.width = "100%";

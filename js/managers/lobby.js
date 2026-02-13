@@ -6,17 +6,21 @@ window.createRoom = async () => {
   btn.disabled = true;
   btn.textContent = "Creating...";
 
-  const roomId = await window.Network.createGame(null, !isPrivate); // ID otomatik, isPublic tersi
+  // 1. Odayı oluştur ve ID'yi al
+  const roomId = await window.Network.createGame(null, !isPrivate);
 
   btn.disabled = false;
   btn.textContent = "Create Room";
+
   if (roomId) {
-    window.state.isVsComputer = false; // Online mod
+    window.state.isVsComputer = false;
     window.state.myColor = "white";
-    window.state.roomId = roomId;
+    window.state.roomId = roomId; // ID'yi state'e kaydet
+
+    // 2. Oyunu başlat ve ID'yi göster
     window.startGameUI(roomId);
   } else {
-    alert("Error creating room.");
+    alert("Error creating room. Try refreshing.");
   }
 };
 
@@ -35,7 +39,7 @@ window.joinRoom = async () => {
   btn.textContent = "Join";
 
   if (res.success) {
-    window.state.isVsComputer = false; // Online mod
+    window.state.isVsComputer = false;
     window.state.myColor = res.color;
     window.state.roomId = roomId;
     window.startGameUI(roomId);
@@ -44,27 +48,17 @@ window.joinRoom = async () => {
   }
 };
 
-// --- SORUNU ÇÖZEN KISIM (BOT BAŞLATMA) ---
 window.startBotGame = () => {
   const diff = document.getElementById("bot-difficulty").value;
-
-  // Oyun Durumunu Ayarla
   window.state.isVsComputer = true;
   window.state.myColor = "white";
   window.state.roomId = "BOT-MATCH";
   window.state.gameStarted = true;
   window.state.isReady = true;
 
-  // Botu Başlat (Artık bot.js var olduğu için hata vermeyecek)
   if (window.Bot && window.Bot.init) {
     window.Bot.init(diff);
-  } else {
-    console.error("Bot module not loaded!");
-    alert("Bot yüklenemedi, sayfayı yenileyin.");
-    return;
   }
-
-  // Arayüzü Başlat
   window.startGameUI("Bot Game");
 };
 

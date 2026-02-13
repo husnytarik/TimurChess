@@ -7,6 +7,10 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Tamerlane Chess Online</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   </head>
@@ -24,7 +28,8 @@
             margin-bottom: 20px;
           "
         >
-          🌐 Sign in with Google
+          <i class="fa-brands fa-google" style="margin-right: 8px"></i> Sign in
+          with Google
         </button>
         <div
           style="
@@ -100,7 +105,7 @@
 
     <div id="lobby-screen" class="hidden">
       <div id="user-badge" onclick="openProfile()">
-        <div class="badge-icon">👤</div>
+        <div class="badge-icon"><i class="fa-solid fa-user"></i></div>
         <div class="badge-info">
           <span id="badge-nickname">Loading...</span>
           <span id="badge-score" style="color: #f1c40f; font-size: 12px"
@@ -177,7 +182,7 @@
           style="background: #8e44ad; margin-top: 10px"
           onclick="showPublicRooms()"
         >
-          🔍 Public Rooms
+          <i class="fa-solid fa-search"></i> Public Rooms
         </button>
       </div>
       <div id="lobby-status" class="status-text"></div>
@@ -190,7 +195,8 @@
         </div>
       </div>
       <button class="btn-profile-fixed" onclick="openProfile()">
-        👤 <span id="badge-nickname-game">Player</span>
+        <i class="fa-solid fa-user" style="margin-right: 5px"></i>
+        <span id="badge-nickname-game">Player</span>
       </button>
     </div>
 
@@ -207,13 +213,13 @@
             class="btn-icon-tiny"
             onclick="window.toggleMic()"
           >
-            🎙️
+            <i class="fa-solid fa-microphone-slash"></i>
           </button>
           <div class="status-wrapper">
             <div id="status" class="status-text-compact">WAITING...</div>
           </div>
           <button onclick="leaveRoom()" class="btn-icon-tiny btn-exit">
-            ❌
+            <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
@@ -233,7 +239,9 @@
                 >WHITE</span
               >
               <span id="lobby-p-white" class="l-name">...</span>
-              <span id="lobby-s-white" class="l-status">⏳</span>
+              <span id="lobby-s-white" class="l-status"
+                ><i class="fa-solid fa-hourglass-half"></i
+              ></span>
             </div>
             <div style="font-weight: bold; color: #7f8c8d">VS</div>
             <div class="l-player">
@@ -242,7 +250,9 @@
                 >BLACK</span
               >
               <span id="lobby-p-black" class="l-name">...</span>
-              <span id="lobby-s-black" class="l-status">⏳</span>
+              <span id="lobby-s-black" class="l-status"
+                ><i class="fa-solid fa-hourglass-half"></i
+              ></span>
             </div>
           </div>
           <div class="lobby-controls">
@@ -266,7 +276,9 @@
       </div>
 
       <div id="log-container">
-        <div class="log-header">📜 Move History</div>
+        <div class="log-header">
+          <i class="fa-solid fa-scroll"></i> Move History
+        </div>
         <div id="log-list"></div>
       </div>
     </div>
@@ -281,7 +293,9 @@
           autocomplete="off"
           onkeydown="handleChatKey(event)"
         />
-        <button type="button" onclick="sendChat()" class="btn-send">➤</button>
+        <button type="button" onclick="sendChat()" class="btn-send">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
       </div>
     </div>
 
@@ -406,7 +420,9 @@
           "
           >&times;</span
         >
-        <div style="font-size: 40px; margin-bottom: 10px">👤</div>
+        <div style="font-size: 40px; margin-bottom: 10px">
+          <i class="fa-solid fa-user"></i>
+        </div>
         <h2 id="fd-nickname" style="margin: 0; color: #f1c40f">...</h2>
         <div
           id="fd-email"
@@ -464,7 +480,9 @@
       "
     >
       <div>
-        <div style="font-weight: bold; font-size: 14px">GAME INVITE!</div>
+        <div style="font-weight: bold; font-size: 14px">
+          <i class="fa-solid fa-envelope"></i> GAME INVITE!
+        </div>
         <div id="invite-msg" style="font-size: 12px">Player invited you.</div>
       </div>
       <div style="display: flex; gap: 5px">
@@ -493,7 +511,7 @@
             font-size: 12px;
           "
         >
-          X
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
