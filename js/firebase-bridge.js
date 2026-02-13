@@ -44,7 +44,6 @@ const googleProvider = new GoogleAuthProvider();
 
 let currentUser = null;
 
-// Rastgele ID Üretici (6 Karakter)
 function generateId() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -54,19 +53,14 @@ window.Network = {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
-        // Kullanıcı verisini garantile (ID yoksa oluştur)
         await initUserData(user);
-
         const statusRef = ref(db, `users/${user.uid}/status`);
         onDisconnect(statusRef).set({
           state: "offline",
           timestamp: serverTimestamp(),
         });
         window.Network.updateMyStatus("online", null, null);
-
-        // Davetleri Dinle
         window.Network.listenForInvites(user.uid);
-
         onLogin(user);
       } else {
         currentUser = null;
@@ -79,7 +73,6 @@ window.Network = {
     signInWithEmailAndPassword(auth, email, pass)
       .then(() => ({ success: true }))
       .catch((e) => ({ success: false, error: e.message })),
-
   register: async (email, pass) => {
     try {
       const r = await createUserWithEmailAndPassword(auth, email, pass);
@@ -89,7 +82,6 @@ window.Network = {
       return { success: false, error: e.message };
     }
   },
-
   loginGoogle: async () => {
     try {
       const r = await signInWithPopup(auth, googleProvider);
@@ -99,7 +91,6 @@ window.Network = {
       return { success: false, error: e.message };
     }
   },
-
   logout: () => {
     if (currentUser) window.Network.updateMyStatus("offline", null, null);
     signOut(auth);
@@ -111,19 +102,15 @@ window.Network = {
       status: { state, roomId, role, timestamp: Date.now() },
     });
   },
-
   setNickname: async (name) => {
     if (!currentUser) return;
     await update(ref(db, `users/${currentUser.uid}`), { nickname: name });
   },
 
-  // --- OYUN KURMA (DÜZELTİLDİ) ---
+  // --- OYUN YÖNETİMİ ---
   createGame: async (customId, isPublic) => {
     if (!currentUser) return null;
-
-    // ID Yoksa Üret
     const roomId = customId || generateId();
-
     const myProfile = await window.Network.getUserProfile();
     const myName = myProfile ? myProfile.nickname : "Player";
 
@@ -142,8 +129,6 @@ window.Network = {
 
     await window.Network.updateMyStatus("waiting", roomId, "White");
     window.Network.setupDisconnectAction(roomId, "white");
-
-    // ÖNEMLİ: ID'yi geri döndür (Lobi bunu bekliyor)
     return roomId;
   },
 
@@ -154,7 +139,6 @@ window.Network = {
     if (!s.exists()) return { success: false, reason: "not_found" };
     const d = s.val();
 
-    // Süresi geçmiş odaları temizle
     if (Date.now() - d.created > 3600000 && d.status === "waiting_ready") {
       remove(r);
       return { success: false, reason: "room_expired" };
@@ -196,6 +180,32 @@ window.Network = {
     return { success: true, color: myColor, isRejoin: isRejoin };
   },
 
+  // --- SORUNU ÇÖZEN KISIM (GET PUBLIC GAMES) ---
+  getPublicGames: async () => {
+    // orderByChild KULLANMIYORUZ (Index hatası vermesin diye)
+    // Bunun yerine son 50 oyunu çekip JavaScript ile biz ayıklıyoruz.
+    const q = query(ref(db, "games"), limitToLast(50));
+    const s = await get(q);
+
+    if (!s.exists()) return [];
+
+    const g = [];
+
+    s.forEach((c) => {
+      const v = c.val();
+      // Manuel Filtreleme: Public mi? Bekliyor mu? Yer var mı?
+      if (
+        v.isPublic === true &&
+        v.status === "waiting_ready" &&
+        (!v.playerBlack || !v.playerWhite)
+      ) {
+        g.push({ id: c.key, ...v });
+      }
+    });
+
+    return g.reverse(); // En yeni en üstte
+  },
+
   setupDisconnectAction: (roomId, color) => {
     if (!currentUser) return;
     const gameRef = ref(db, "games/" + roomId);
@@ -206,14 +216,12 @@ window.Network = {
     disconnectUpdate[`${color}Disconnected`] = serverTimestamp();
     onDisconnect(gameRef).update(disconnectUpdate);
   },
-
   listenGame: (roomId, cb) => {
     const r = ref(db, "games/" + roomId);
     onValue(r, (s) => {
       if (s.val()) cb(s.val());
     });
   },
-
   leaveGame: async (roomId, color) => {
     if (!currentUser) return;
     const r = ref(db, "games/" + roomId);
@@ -241,7 +249,6 @@ window.Network = {
     else await update(r, u);
     await window.Network.updateMyStatus("online", null, null);
   },
-
   setReady: (roomId, color, isReady) => {
     const u = {};
     if (color === "white") u.readyWhite = isReady;
@@ -282,7 +289,6 @@ window.Network = {
     s.forEach((c) => h.push(c.val()));
     return h.reverse();
   },
-
   recordGameResult: async (isWin, oppName) => {
     if (!currentUser) return;
     const uid = currentUser.uid;
@@ -306,31 +312,13 @@ window.Network = {
     await window.Network.updateMyStatus("online", null, null);
   },
 
-  getPublicGames: async () => {
-    const q = query(ref(db, "games"), orderByChild("isPublic"), equalTo(true));
-    const s = await get(q);
-    if (!s.exists()) return [];
-    const g = [];
-    const now = Date.now();
-    s.forEach((c) => {
-      const v = c.val();
-      if ((!v.playerBlack || !v.playerWhite) && v.status === "waiting_ready")
-        g.push({ id: c.key, ...v });
-    });
-    return g;
-  },
-
-  // --- ARKADAŞ VE DAVET SİSTEMİ (Onarıldı) ---
   sendFriendRequest: async (identifier) => {
     if (!currentUser) return { success: false, error: "Not logged in" };
-    // Tüm kullanıcıları tara (Güvenlik kuralı 'users' read açık olmalı)
     const usersRef = ref(db, "users");
     const s = await get(usersRef);
     let targetUid = null;
-
     s.forEach((child) => {
       const u = child.val();
-      // Hem Email hem ID ile arama yap
       if (
         (u.email && u.email.toLowerCase() === identifier.toLowerCase()) ||
         (u.friendId && u.friendId === identifier.toUpperCase())
@@ -338,11 +326,9 @@ window.Network = {
         targetUid = child.key;
       }
     });
-
     if (!targetUid) return { success: false, error: "User not found" };
     if (targetUid === currentUser.uid)
       return { success: false, error: "Cannot add yourself" };
-
     const myP = await window.Network.getUserProfile();
     await set(ref(db, `users/${targetUid}/requests/${currentUser.uid}`), {
       email: currentUser.email,
@@ -351,7 +337,6 @@ window.Network = {
     });
     return { success: true };
   },
-
   sendInvite: async (friendUid, roomId) => {
     if (!currentUser) return;
     const myProfile = await window.Network.getUserProfile();
@@ -362,7 +347,6 @@ window.Network = {
       timestamp: Date.now(),
     });
   },
-
   listenForInvites: (uid) => {
     onChildAdded(ref(db, `users/${uid}/invites`), (s) => {
       const i = s.val();
@@ -422,7 +406,6 @@ window.Network = {
     await remove(ref(db, `users/${currentUser.uid}/friends/${uid}`));
     await remove(ref(db, `users/${uid}/friends/${currentUser.uid}`));
   },
-
   sendChatMessage: async (roomId, msg, senderName) => {
     if (!currentUser || !msg.trim()) return;
     const chatRef = ref(db, `games/${roomId}/chat`);
@@ -440,18 +423,15 @@ window.Network = {
   },
 };
 
-// --- KULLANICI BAŞLATMA (YAMALI) ---
 async function initUserData(user) {
   const r = ref(db, "users/" + user.uid);
   const s = await get(r);
-
-  // Kullanıcı yoksa veya EKSİKSE (ID'si yoksa) tamamla
   if (!s.exists() || !s.val().friendId) {
     const d = user.email.split("@")[0];
     await update(r, {
       email: user.email,
       nickname: s.exists() ? s.val().nickname || d : d,
-      friendId: generateId(), // ID ÜRET
+      friendId: generateId(),
       score: s.exists() ? s.val().score || 1000 : 1000,
       wins: s.exists() ? s.val().wins || 0 : 0,
       losses: s.exists() ? s.val().losses || 0 : 0,
