@@ -575,3 +575,83 @@ input:checked + .slider:before {
   font-size: 20px;
   padding: 0 15px;
 }
+/* --- MOBİL UYUMLULUK (TELEFONLAR İÇİN KÜÇÜLTME) --- */
+@media (max-width: 600px) {
+  /* Genel Font Küçültme */
+  body {
+    font-size: 14px;
+  }
+
+  /* Kutuları Daralt */
+  .auth-box,
+  .lobby-box {
+    padding: 15px; /* 20px'den 15px'e düştü */
+    width: 92%; /* Ekrana tam yapışmasın */
+    max-width: none;
+    margin-bottom: 15px;
+  }
+
+  /* Başlıkları Küçült */
+  .game-title {
+    font-size: 22px; /* 28px'den 22px'e düştü */
+    margin-bottom: 15px;
+    margin-top: 0;
+  }
+  h3 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  /* Input ve Butonları İncelt */
+  .auth-input,
+  .input-code,
+  .btn {
+    padding: 8px 12px; /* Daha ince butonlar */
+    font-size: 14px;
+    height: auto;
+    margin-bottom: 8px;
+  }
+
+  /* Profil Rozetini (Sağ Üst) Küçült */
+  #user-badge {
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+  }
+  .badge-icon {
+    font-size: 14px;
+  }
+  #badge-nickname {
+    font-size: 12px;
+  }
+  #badge-score {
+    font-size: 10px;
+  }
+
+  /* Lobi Ekranı Üst Boşluğunu Ayarla */
+  #lobby-screen {
+    padding-top: 50px; /* Rozetle çakışmasın */
+    justify-content: flex-start; /* İçeriği yukarı it */
+  }
+
+  /* Listeler (Oda, Arkadaş) */
+  .scroll-list {
+    max-height: 150px;
+  } /* Liste boyunu kısalt */
+  .list-item {
+    padding: 8px;
+  }
+
+  /* Modalları Ekrana Sığdır */
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+    max-height: 85vh;
+  }
+
+  /* Google Butonu */
+  .auth-box button img {
+    width: 16px !important;
+  }
+}

@@ -43,6 +43,15 @@ window.addLogEntry = (msg) => {
 };
 
 window.startGameUI = (roomId) => {
+  const newurl =
+    window.location.protocol +
+    "//" +
+    window.location.host +
+    window.location.pathname +
+    "?room=" +
+    roomId;
+  window.history.pushState({ path: newurl }, "", newurl);
+
   document.getElementById("auth-screen").classList.add("hidden");
   document.getElementById("lobby-screen").classList.add("hidden");
 
@@ -90,6 +99,9 @@ window.startGameUI = (roomId) => {
 
 window.leaveRoom = async () => {
   if (!confirm("Leave game?")) return;
+
+  window.history.pushState({}, "", window.location.pathname);
+
   if (!window.state.isVsComputer) {
     await window.Network.leaveGame(window.state.roomId, window.state.myColor);
   }

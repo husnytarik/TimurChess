@@ -14,9 +14,16 @@ window.addEventListener("load", () => {
       // URL ile Oda Katılımı
       const urlParams = new URLSearchParams(window.location.search);
       const inviteCode = urlParams.get("room");
-      if (inviteCode) {
-        document.getElementById("room-code-input").value = inviteCode;
-        window.joinRoom();
+
+      if (inviteCode && inviteCode !== "BOT-MATCH") {
+        // Kullanıcıya sorarak odaya geri sok
+        if (confirm("Bir odaya bağlısınız. Geri dönmek ister misiniz?")) {
+          document.getElementById("room-code-input").value = inviteCode;
+          window.joinRoom();
+        } else {
+          // Hayır derse URL'yi temizle
+          window.history.pushState({}, "", window.location.pathname);
+        }
       }
     },
     () => {
