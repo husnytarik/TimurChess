@@ -1,68 +1,5 @@
 # ♟️ Timur Chess
 
-## 🇹🇷 TÜRKÇE
-
-**Timur Chess**, tarihi **Timur (Tamerlane) Satranç** oyununu modern web teknolojileri ile yeniden hayata geçiren, gerçek zamanlı çok oyunculu bir web platformudur.
-
-Platform hem mobil hem de PC tarayıcılarından erişilebilir ve herhangi bir kurulum gerektirmez. Oyuncular, profil oluşturabilir, arkadaş ekleyebilir, puan ve maç geçmişlerini takip edebilirler.
-
----
-
-## 🔹 Özellikler
-
-### 👤 Kullanıcı Sistemi
-- Profil oluşturma  
-- Arkadaş ekleme  
-- Puan ve maç durumu takibi  
-- Maç geçmişi ve canlı oyun durumu
-
----
-
-### 🏛️ Lobi Sistemi
-- 🌐 Public (Herkese açık) odalar  
-- 🔒 Private (Özel) odalar  
-- Firebase Realtime Database ile anlık oda ve veri yönetimi  
-- Karşılıklı "Hazır" sistemi ile maç başlatma
-
----
-
-### 🤖 Botlara Karşı Oynama
-- Tek oyunculu deneyim  
-- Strateji geliştirme ve pratik yapma
-
----
-
-### 💬 İletişim
-- 🎙️ Tarayıcı üzerinden düşük gecikmeli sesli iletişim  
-- 💬 Yazılı sohbet sistemi
-
----
-
-### 🌍 Platform Desteği
-- 📱 Mobil Web  
-- 💻 Desktop Web  
-
----
-
-## 🔥 Altyapı
-- Firebase Realtime Database (oda yönetimi, maç senkronizasyonu, chat)  
-- WebRTC tabanlı sesli iletişim  
-- Gerçek zamanlı veri senkronizasyonu  
-- Kurulum gerektirmeyen tamamen web tabanlı yapı
-
----
-
-## ♜ Timur Satranç Hakkında
-Timur Chess (Tamerlane Chess), 14. yüzyılda Timur döneminde oynanan bir satranç varyantıdır.  
-
-- Klasik satranca göre daha büyük bir tahta  
-- Ek taş türleri ve farklı hareketler  
-- Daha karmaşık stratejik derinlik  
-
-Bu proje, tarihi oyunu modern web tabanlı çok oyunculu sistemlerle dijital ortama taşımaktadır.
-
----
-
 ## 🇺🇸 EN
 
 **Timur Chess** is a web-based implementation of the historical **Tamerlane (Timur) Chess**, featuring real-time multiplayer, voice communication, and competitive gameplay systems.
@@ -127,3 +64,68 @@ This project modernizes the historical game with online multiplayer and real-tim
 ---
 
 Timur Chess brings a historical strategy game into the modern web era, offering competitive, social, and real-time multiplayer experience.
+
+---
+
+## 🇹🇷 TÜRKÇE
+
+**Timur Chess**, tarihi **Timur (Tamerlane) Satranç** oyununu modern web teknolojileri ile yeniden hayata geçiren, gerçek zamanlı çok oyunculu bir web platformudur.
+
+Platform hem mobil hem de PC tarayıcılarından erişilebilir ve herhangi bir kurulum gerektirmez. Oyuncular, profil oluşturabilir, arkadaş ekleyebilir, puan ve maç geçmişlerini takip edebilirler.
+
+---
+
+## 🔹 Özellikler
+
+### 👤 Kullanıcı Sistemi
+- Profil oluşturma  
+- Arkadaş ekleme  
+- Puan ve maç durumu takibi  
+- Maç geçmişi ve canlı oyun durumu
+
+---
+
+### 🏛️ Lobi Sistemi
+- 🌐 Public (Herkese açık) odalar  
+- 🔒 Private (Özel) odalar  
+- Firebase Realtime Database ile anlık oda ve veri yönetimi  
+- Karşılıklı "Hazır" sistemi ile maç başlatma
+
+---
+
+### 🤖 Botlara Karşı Oynama
+- Tek oyunculu deneyim  
+- Strateji geliştirme ve pratik yapma
+
+---
+
+### 💬 İletişim
+- 🎙️ Tarayıcı üzerinden düşük gecikmeli sesli iletişim  
+- 💬 Yazılı sohbet sistemi
+
+---
+
+### 🌍 Platform Desteği
+- 📱 Mobil Web  
+- 💻 Desktop Web  
+
+---
+
+## 🔥 Altyapı
+- Firebase Realtime Database (oda yönetimi, maç senkronizasyonu, chat)  
+- WebRTC tabanlı sesli iletişim  
+- Gerçek zamanlı veri senkronizasyonu  
+- Kurulum gerektirmeyen tamamen web tabanlı yapı
+
+---
+
+## ♜ Timur Satranç Hakkında
+Timur Chess (Tamerlane Chess), 14. yüzyılda Timur döneminde oynanan bir satranç varyantıdır.  
+
+- Klasik satranca göre daha büyük bir tahta  
+- Ek taş türleri ve farklı hareketler  
+- Daha karmaşık stratejik derinlik  
+
+Bu proje, tarihi oyunu modern web tabanlı çok oyunculu sistemlerle dijital ortama taşımaktadır.
+
+---
