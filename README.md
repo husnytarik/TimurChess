@@ -1,5 +1,7 @@
 # ♟️ Timur Chess
 
+husnytarik.github.io/TimurChess/
+
 ## 🇺🇸 EN
 
 **Timur Chess** is a web-based implementation of the historical **Tamerlane (Timur) Chess**, featuring real-time multiplayer, voice communication, and competitive gameplay systems.
